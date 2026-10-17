@@ -1,0 +1,2422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Committee for Campus Fauna — IIT Roorkee</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    .font-serif-editorial {
+      font-family: 'Newsreader', Georgia, serif;
+    }
+    .font-mono-field {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    body {
+      background-color: #FAF7F2;
+      color: #1C2826;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    // Self-contained SVG Icons (Zero external icon dependencies!)
+    const ArrowUpRight = ({ className = "w-4 h-4" }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="7" y1="17" x2="17" y2="7" />
+        <polyline points="7 7 17 7 17 17" />
+      </svg>
+    );
+
+    const Download = ({ className = "w-4 h-4" }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    );
+
+    const Search = ({ className = "w-4 h-4" }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+    );
+
+    const X = ({ className = "w-4 h-4" }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    );
+
+    const FileText = ({ className = "w-4 h-4" }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+    );
+
+    const PAGE_COMPANIONS = {
+      overview: {
+        id: 'sheru',
+        name: 'Sheru',
+        title: 'Main Building Indie Dog',
+        badge: 'Overview Guide • Ear-Notched',
+        welcomeText: "Woof! Welcome to CCF IIT Roorkee! I'm Sheru—I'll be trotting around this page while you read~",
+        fleeTexts: ['Eep! Ticklish paws!', 'Zoomies across the lawn!!', 'Catch me near Thomason Building!'],
+        idleThoughts: ['*sniffing warm paper*', '*happy tail wags*', '*watching butterflies*']
+      },
+      fauna: {
+        id: 'milo',
+        name: 'Milo',
+        title: 'Central Library Tuxedo-Ginger Cat',
+        badge: 'Directory Guide • Tipped Ear',
+        welcomeText: "Purr-hello! I'm Milo from MGCL Library! Meet all my furry and feathered campus friends below~",
+        fleeTexts: ['Mrow! Too close to my whiskers!', '*pounces away gracefully*', 'No belly rubs right now!'],
+        idleThoughts: ['*kneading soft paws*', '*purring softly*', '*grooming whiskers*']
+      },
+      emergency: {
+        id: 'pihu',
+        name: 'Pihu',
+        title: 'Botanical Grove Indian Peafowl',
+        badge: 'Safety Guide • Schedule I Protected',
+        welcomeText: "Kuk-oo! I'm Pihu! Here are our 24/7 emergency protocols and Roorkee vet contacts to keep everyone safe!",
+        fleeTexts: ['Oh my crest feathers! *flutters*', 'Excuse me, coming through!', '*shimmers train & trots off*'],
+        idleThoughts: ['*preening royal crest*', '*foraging quietly*', '*admiring tail ocelli*']
+      },
+      map: {
+        id: 'chikki',
+        name: 'Chikki',
+        title: 'Five-Striped Palm Squirrel',
+        badge: 'Sector Scout • Canopy Forager',
+        welcomeText: "Squeak-squeak! I'm Chikki! Click any pin to explore our 6 campus feeding zones—try catching me if you can!",
+        fleeTexts: ['Zip-zap! Don’t take my acorn!', '*scurries up an imaginary banyan*', 'Too fast for you! *squeak*'],
+        idleThoughts: ['*nibbling a crunchy nut*', '*twitching fluffy tail*', '*polishing an acorn*']
+      },
+      adopt: {
+        id: 'biscuit',
+        name: 'Biscuit',
+        title: '65-Day-Old Campus Indie Puppy',
+        badge: 'Adoption Ambassador • Vaccinated',
+        welcomeText: "Arf arf!! I'm little Biscuit! Are you here to adopt or sponsor one of us? I'll follow you around!",
+        fleeTexts: ['Waaah! Big clumsy paws running!', '*bouncy puppy zoomies!*', 'Hehe you almost booped my nose!'],
+        idleThoughts: ['*chasing own tail*', '*big sleepy puppy yawn*', '*floppy ear wiggle*']
+      },
+      laws: {
+        id: 'golu',
+        name: 'Golu',
+        title: 'Banyan Grove Spotted Owlet',
+        badge: 'Legal Scholar • 19 FAQs Keeper',
+        welcomeText: "Hoo-hoo! Greetings, scholar! I'm Golu the Owlet, guardian of Indian Animal Laws and all 19 Campus FAQs!",
+        fleeTexts: ['Hoo-boy! Respect personal airspace!', '*fluffs feathers & glides over*', 'Article 21 protects my nap!'],
+        idleThoughts: ['*blinking big golden eyes*', '*adjusting wise spectacles*', '*pondering ABC Rules 2023*']
+      }
+    };
+
+    const FAUNA_INDEX = [
+      {
+        id: 'CCF-01',
+        name: 'Sheru',
+        species: 'Canis lupus familiaris (Indian Native Dog)',
+        category: 'Dogs',
+        territory: 'James Thomason Building (Main Lawns)',
+        collar: 'Terracotta Reflective Band',
+        earNotch: 'Yes — Left Ear V-Notch',
+        medical: 'Sterilized • ARV Booster 2026',
+        age: '4 Years',
+        temperament: 'Measured, observant, gentle with morning walkers.',
+        notes: 'Resides near the east portico of the Main Building. Frequently accompanies night-duty guards along the heritage corridor.',
+        status: 'Permanent Resident (Open for Sponsorship)'
+      },
+      {
+        id: 'CCF-02',
+        name: 'Coco',
+        species: 'Canis lupus familiaris (Indian Native Dog)',
+        category: 'Dogs',
+        territory: 'Govind Bhawan & Tapovan Lawns',
+        collar: 'Olive Reflective Band',
+        earNotch: 'Yes — Right Ear V-Notch',
+        medical: 'Sterilized • ARV Booster 2026',
+        age: '2.5 Years',
+        temperament: 'Affectionate, sociable, fond of quiet company.',
+        notes: 'Typically rests near the Govind Bhawan banyan tree during afternoon hours. Responds well to calm vocal calls.',
+        status: 'Available for Adoption / Sponsorship'
+      },
+      {
+        id: 'CCF-03',
+        name: 'Bella',
+        species: 'Canis lupus familiaris (Indian Native Dog)',
+        category: 'Dogs',
+        territory: 'Saraswati & Kasturba Bhawan Perimeter',
+        collar: 'Ochre Reflective Band',
+        earNotch: 'Yes — Left Ear V-Notch',
+        medical: 'Sterilized • ARV Booster 2026',
+        age: '3 Years',
+        temperament: 'Initially reserved; deeply loyal once familiar.',
+        notes: 'Rehabilitated by CCF volunteers following a minor paw injury in late 2024. Prefers quiet evening feeding hours.',
+        status: 'Permanent Resident (Sponsored)'
+      },
+      {
+        id: 'CCF-04',
+        name: 'Rusty Jr.',
+        species: 'Canis lupus familiaris (Indian Native Pup)',
+        category: 'Dogs',
+        territory: 'Lecture Hall Complex (LHC) Courtyard',
+        collar: 'Soft Linen Puppy Tag',
+        earNotch: 'Not Yet (Under 6 Months)',
+        medical: 'Dewormed • 9-in-1 Primary & ARV Completed',
+        age: '78 Days (Eligible for Adoption)',
+        temperament: 'Inquisitive, playful, adaptable to home environments.',
+        notes: 'Surpassed the mandatory 60-day maternal care threshold. Cleared by Dr. Rohit for residential family adoption.',
+        status: 'Eligible for Immediate Adoption'
+      },
+      {
+        id: 'CCF-05',
+        name: 'Milo',
+        species: 'Felis catus (Domestic Short-Haired Ginger)',
+        category: 'Cats',
+        territory: 'Department of Architecture & MGCL Library',
+        collar: 'Breakaway Sage Band',
+        earNotch: 'Yes — Tipped Ear',
+        medical: 'Neutered • Vaccinated',
+        age: '2 Years',
+        temperament: 'Unhurried, independent, fond of sunlit steps.',
+        notes: 'Frequently observed napping on the warm sandstone ledges outside Mahatma Gandhi Central Library.',
+        status: 'Available for Adoption'
+      },
+      {
+        id: 'CCF-06',
+        name: 'Shadow',
+        species: 'Felis catus (Bicolor Tuxedo)',
+        category: 'Cats',
+        territory: 'Rajendra Bhawan Courtyard',
+        collar: 'Breakaway Charcoal Band',
+        earNotch: 'Yes — Tipped Ear',
+        medical: 'Spayed • Vaccinated',
+        age: '1.8 Years',
+        temperament: 'Alert, agile, vocal around dusk.',
+        notes: 'Patrols the inner garden beds of Rajendra Bhawan and keeps rodent populations in check.',
+        status: 'Permanent Resident'
+      },
+      {
+        id: 'CCF-07',
+        name: 'Indian Peafowl (Mor)',
+        species: 'Pavo cristatus (Schedule I Protected)',
+        category: 'Birds & Wildlife',
+        territory: 'Botanical Garden & Director’s Bungalow Grove',
+        collar: 'Wild Protected Avifauna',
+        earNotch: 'N/A — Wild Specimen',
+        medical: 'Wild Population (WII Census)',
+        age: 'Wild Resident',
+        temperament: 'Shy, ground-foraging, roosts in tall heritage trees.',
+        notes: 'Protected strictly under Schedule I of the Wildlife Protection Act, 1972. Observe from at least 15 meters away.',
+        status: 'Protected Campus Biodiversity'
+      },
+      {
+        id: 'CCF-08',
+        name: 'White-Throated Kingfisher',
+        species: 'Halcyon smyrnensis',
+        category: 'Birds & Wildlife',
+        territory: 'Upper Ganga Canal Banks & Boat Club',
+        collar: 'Wild Protected Avifauna',
+        earNotch: 'N/A — Wild Specimen',
+        medical: 'Wild Population (WII Census)',
+        age: 'Wild Resident',
+        temperament: 'Solitary percher, swift hunter.',
+        notes: 'One of 57 bird species documented on the IIT Roorkee campus by the Wildlife Institute of India (WII).',
+        status: 'WII Documented Avifauna'
+      },
+      {
+        id: 'CCF-09',
+        name: 'Five-Striped Palm Squirrel',
+        species: 'Funambulus pennantii',
+        category: 'Birds & Wildlife',
+        territory: 'Campus-Wide Canopy (140+ Tree Varieties)',
+        collar: 'Wild Native Mammal',
+        earNotch: 'N/A — Wild Specimen',
+        medical: 'Wild Population',
+        age: 'Wild Resident',
+        temperament: 'Diurnal, vocal, swift arboreal forager.',
+        notes: 'Essential contributor to seed dispersal across IIT Roorkee’s historic botanical groves.',
+        status: 'Native Campus Fauna'
+      }
+    ];
+
+    const CAMPUS_SECTORS = [
+      {
+        id: 'SEC-01',
+        name: 'James Thomason (Main Building) Sector',
+        coords: { x: 48, y: 30 },
+        dogsCount: 14,
+        waterTroughs: 6,
+        feedingSpot: 'Rear service lane behind Administrative Parking (away from pedestrian steps)',
+        schedule: '07:30 AM & 09:30 PM',
+        stewards: 'Aarav S. & Security Unit A',
+        avianNotes: 'Rose-ringed Parakeets, Spotted Owlets, Indian Peafowl'
+      },
+      {
+        id: 'SEC-02',
+        name: 'Rajendra & Cautley Bhawan Sector',
+        coords: { x: 22, y: 58 },
+        dogsCount: 19,
+        waterTroughs: 8,
+        feedingSpot: 'Designated perimeter buffer outside Bhawan back-gate',
+        schedule: '08:00 AM & 10:00 PM',
+        stewards: 'Priya M. & Rohan K.',
+        avianNotes: 'Oriental Magpie-Robin, Red-vented Bulbul'
+      },
+      {
+        id: 'SEC-03',
+        name: 'Saraswati & Kasturba Bhawan Sector',
+        coords: { x: 76, y: 36 },
+        dogsCount: 12,
+        waterTroughs: 5,
+        feedingSpot: 'East lawn verge (50m away from hostel entry gate)',
+        schedule: '07:45 AM & 09:15 PM',
+        stewards: 'Ananya V. & CCF Volunteer Group',
+        avianNotes: 'Indian Grey Hornbill, Purple Sunbird'
+      },
+      {
+        id: 'SEC-04',
+        name: 'LHC & Mahatma Gandhi Central Library',
+        coords: { x: 52, y: 62 },
+        dogsCount: 11,
+        waterTroughs: 7,
+        feedingSpot: 'East cycle-stand outer verge (strictly post-lecture hours)',
+        schedule: '09:45 PM Only',
+        stewards: 'Siddharth T. & Library Stewards',
+        avianNotes: 'Laughing Dove, Common Myna, House Swift'
+      },
+      {
+        id: 'SEC-05',
+        name: 'Institute Hospital & Canal Culvert Gate',
+        coords: { x: 26, y: 24 },
+        dogsCount: 9,
+        waterTroughs: 4,
+        feedingSpot: 'Green belt adjacent to Canal Bank service path',
+        schedule: '08:15 AM & 09:00 PM',
+        stewards: 'Dr. Verma (Staff Rep) & Volunteers',
+        avianNotes: 'White-throated Kingfisher, Little Cormorant'
+      },
+      {
+        id: 'SEC-06',
+        name: 'Govind Bhawan & SAC Lawns',
+        coords: { x: 73, y: 74 },
+        dogsCount: 16,
+        waterTroughs: 6,
+        feedingSpot: 'Open Air Theatre (OAT) outer boundary wall',
+        schedule: '08:00 AM & 10:15 PM',
+        stewards: 'Kabir D. & Mess Collection Team',
+        avianNotes: 'Jungle Babbler, Common Hoopoe'
+      }
+    ];
+
+    const ALL_19_FAQS = [
+      {
+        id: 1,
+        category: 'Emergency & Medical',
+        q: 'What should I do if I find an ill or injured animal on campus?',
+        a: 'Follow the 6-step CCF Standard Operating Procedure:\n1. Observe the animal from a calm, safe distance without crowding it.\n2. Inform CCF immediately via email (ccf@iitr.ac.in, ccf-office@iitr.ac.in) or call the Emergency Helpdesk at +91 9068001181.\n3. Share clear photographs and the exact landmark.\n4. Coordinate with Campus Security for safe transport to city veterinarians.\n5. If the animal is wild (monkey, bird, peafowl, snake), CCF coordinates directly with the Uttarakhand Forest Department.\n6. Log the veterinary prescription with CCF for post-treatment follow-up.'
+      },
+      {
+        id: 2,
+        category: 'Human Safety & Bites',
+        q: 'What is the protocol in case of a stray animal bite on campus?',
+        a: '1. Seek immediate assistance from nearby Campus Security personnel.\n2. Wash the wound thoroughly under running water with soap for a full 15 minutes.\n3. Proceed immediately to the IIT Roorkee Institute Hospital for Anti-Rabies Vaccination (ARV) and tetanus care.\n4. Report the incident with the exact location and collar/coat description to ccf@iitr.ac.in.\n5. CCF and Security will safely identify and observe the dog for 10 days as per standard medical guidelines.'
+      },
+      {
+        id: 3,
+        category: 'Emergency & Medical',
+        q: 'Whom should I contact if I spot a deceased animal on campus?',
+        a: '1. Note the exact campus road or Bhawan landmark.\n2. Notify the CCF Emergency Helpdesk (+91 9068001181) and the Campus Sanitation Helpdesk.\n3. The Sanitation Department will respectfully retrieve the body.\n4. Hygienic deep burial with salt is carried out at designated sites to ensure campus sanitation.'
+      },
+      {
+        id: 4,
+        category: 'Emergency & Medical',
+        q: 'How is transport arranged to take an injured animal to a veterinarian?',
+        a: 'Campus residents reporting an injured animal coordinate with Team CCF and Campus Security. Security provides vehicle and cage support to transport the animal to Ramnagar or Beldih Veterinary Hospitals.'
+      },
+      {
+        id: 5,
+        category: 'Emergency & Medical',
+        q: 'What are the contact details of city veterinarians in Roorkee?',
+        a: '• Government Veterinary Ambulance: 1962 (Toll-Free)\n• Veterinary Hospital Ramnagar (Dr. Rohit): +91 9917339331\n• Veterinary Hospital Beldih (Dr. Nishant Sharma): +91 9411302358\n• IITR CCF Emergency Helpdesk: +91 9068001181'
+      },
+      {
+        id: 6,
+        category: 'Campus Dogs & Feeding',
+        q: 'Can I feed stray animals on campus? What are the regulations?',
+        a: 'Yes. Feeding community animals is legally protected under Rule 19 of the Animal Birth Control (ABC) Rules, 2023. However, feeding must be conducted strictly at designated spots away from hostel entrances, crowded walkways, and children’s play areas, and only during designated early morning or late-night hours.'
+      },
+      {
+        id: 7,
+        category: 'Campus Dogs & Feeding',
+        q: 'What hygiene guidelines must be followed while feeding campus animals?',
+        a: 'Never leave plastic wrappers, paper plates, or spoilt food on campus roads. Use clean bowls or biodegradable sheets and clear the spot immediately after feeding. Avoid spicy mess food, chocolates, onions, or sharp poultry bones.'
+      },
+      {
+        id: 8,
+        category: 'Campus Dogs & Feeding',
+        q: 'Why do campus dogs wear color-coded collars?',
+        a: 'CCF fits reflective, color-coded collars on resident dogs to:\n1. Distinguish immunized IIT Roorkee resident dogs from newly entered outsider dogs.\n2. Provide night-time reflectivity to prevent road accidents.\n3. Identify which campus sector or Bhawan territory the dog belongs to.'
+      },
+      {
+        id: 9,
+        category: 'Campus Dogs & Feeding',
+        q: 'Why do many dogs on campus have a "V" shaped notch on their ear?',
+        a: 'A small "V" shaped ear-notch on the ear tip is the universal veterinary mark prescribed by the Animal Welfare Board of India (AWBI), indicating that the dog has been humanely sterilized and vaccinated against rabies under the ABC program.'
+      },
+      {
+        id: 10,
+        category: 'Laws & Coexistence',
+        q: 'Why cannot stray dogs be relocated outside the IIT Roorkee campus?',
+        a: 'Under Supreme Court of India directives and Rule 11 of the ABC Rules 2023, relocating stray dogs is strictly illegal. Scientifically, removing sterilized, vaccinated resident dogs creates a territorial vacuum that attracts unsterilized, unvaccinated outsider dogs—increasing bite and rabies risks.'
+      },
+      {
+        id: 11,
+        category: 'Campus Rules & Pets',
+        q: 'Are students or faculty permitted to keep personal pets on campus?',
+        a: '• Students: Students residing in Bhawans/Hostels are NOT permitted to keep personal pets in hostel rooms.\n• Faculty & Staff: Permanent residents in staff housing ARE permitted to keep pets, provided they ensure complete vaccination, leash walking, waste cleanup, and zero inconvenience to neighbors.'
+      },
+      {
+        id: 12,
+        category: 'Laws & Coexistence',
+        q: 'Why should we not shoo away, pelt stones, or strike stray dogs?',
+        a: 'Community dogs are naturally peaceful unless provoked. Throwing stones, waving sticks, or shouting induces fear and defensive aggression, making the animal distrustful of humans. Provoking or injuring animals is also a punishable offense under the PCA Act, 1960.'
+      },
+      {
+        id: 13,
+        category: 'Laws & Coexistence',
+        q: 'How can I avoid conflict if a group of dogs barks or approaches at night?',
+        a: 'Remain calm and do NOT run or shout, as running triggers a natural chase reflex. Stand still, avoid direct eye contact, and walk away at an unhurried pace. If cycling or riding a two-wheeler at night, slow down smoothly.'
+      },
+      {
+        id: 14,
+        category: 'Campus Dogs & Feeding',
+        q: 'Why do a majority of CCF operations focus on stray dogs?',
+        a: 'While CCF protects all campus birds, cats, macaques, and reptiles, IIT Roorkee has porous boundaries with the city. Dogs live in closest proximity to hostels and academic buildings, requiring continuous sterilization, annual rabies boosters, and feeding management.'
+      },
+      {
+        id: 15,
+        category: 'Campus Rules & Pets',
+        q: 'Why is applying colours on animals during Holi or festivals prohibited?',
+        a: 'Synthetic colours contain lead, heavy metals, and toxic alkalis. Because dogs and cats groom themselves by licking their fur, ingesting these powders causes severe poisoning, blindness, and dermatitis. Applying chemical colors to animals is punishable as cruelty.'
+      },
+      {
+        id: 16,
+        category: 'Human Safety & Bites',
+        q: 'What should I do if I spot a snake inside a Bhawan, department, or lawn?',
+        a: '1. Do NOT panic or attempt to harm the snake (snakes are protected under the Wildlife Protection Act, 1972).\n2. Maintain a safe distance of at least 10–15 feet and keep visual track of its movement.\n3. If safe, take a zoomed photograph to aid species identification.\n4. Immediately call Campus Security and the CCF Helpdesk (+91 9068001181) for trained rescue.'
+      },
+      {
+        id: 17,
+        category: 'Human Safety & Bites',
+        q: 'What is the emergency first-aid protocol in case of a snakebite?',
+        a: '1. Keep the patient calm and still to slow systemic venom absorption.\n2. Immobilize the bitten limb below heart level.\n3. Do NOT apply tight tourniquets, do NOT cut or suck the wound, and do NOT apply ice.\n4. Transport the patient immediately to the IIT Roorkee Institute Hospital, where Anti-Snake Venom (ASV) is stocked.'
+      },
+      {
+        id: 18,
+        category: 'Campus Rules & Pets',
+        q: 'How can I adopt a campus puppy or adult dog through CCF?',
+        a: 'Complete the official CCF Adoption Form in the "Adoption & Get Involved" section. In accordance with AWBI norms, puppies must be over 60 days old before separation from their mother, and adult dogs must be sterilized prior to adoption.'
+      },
+      {
+        id: 19,
+        category: 'Laws & Coexistence',
+        q: 'What are the legal consequences of animal cruelty or poisoning on campus?',
+        a: 'Cruelty to animals is a cognizable criminal offense under the Prevention of Cruelty to Animals (PCA) Act, 1960, and Sections 428/429 of the IPC (Section 325 BNS), punishable by up to 5 years imprisonment, statutory fines, and strict institute disciplinary action. Report any abuse with evidence to ccf@iitr.ac.in.'
+      }
+    ];
+
+    const LEGAL_STATUTES = [
+      {
+        code: 'PCA Act, 1960',
+        title: 'Prevention of Cruelty to Animals Act, 1960',
+        clause: 'Section 11(1)(a) to (o)',
+        summary: 'Criminalizes beating, kicking, torturing, starving, mutilating, poisoning, or abandoning any animal so as to subject it to unnecessary pain or suffering.',
+        mandate: 'Abandoning a pet or throwing stones, boiling water, or toxic colours on campus animals is a statutory offense.'
+      },
+      {
+        code: 'ABC Rules, 2023',
+        title: 'Animal Birth Control Rules, 2023',
+        clause: 'Rule 11 (No Relocation) & Rule 19 (Feeding Zones)',
+        summary: 'Mandates scientific sterilization and anti-rabies immunization of community dogs. Expressly forbids dislocation of dogs and directs institutions to designate clean feeding areas.',
+        mandate: 'Protects student and faculty feeders from harassment while enforcing hygienic, scheduled feeding.'
+      },
+      {
+        code: 'WPA, 1972',
+        title: 'Wildlife Protection Act, 1972',
+        clause: 'Schedule I & Schedule II Protections',
+        summary: 'Affords highest statutory protection to IIT Roorkee’s wild fauna, including the Indian Peafowl (Schedule I), Spectacled Cobra, Rat Snake, Monitor Lizard, and native bird species.',
+        mandate: 'Harming, trapping, or killing snakes, peafowl, or wild birds on campus is a non-bailable criminal offense.'
+      },
+      {
+        code: 'IPC 428 & 429 / BNS 325',
+        title: 'Indian Penal Code (Bharatiya Nyaya Sanhita Sec. 325)',
+        clause: 'Criminal Mischief Against Animals',
+        summary: 'Makes killing, poisoning, maiming, or rendering useless any animal a cognizable offense punishable with imprisonment up to five years, fine, or both.',
+        mandate: 'Applies strictly to deliberate poisoning and reckless vehicular hit-and-run incidents on campus roads.'
+      },
+      {
+        code: 'Art. 51A(g) & Art. 21',
+        title: 'Constitution of India & Supreme Court Mandate',
+        clause: 'AWBI vs. A. Nagaraja (2014)',
+        summary: 'Article 51A(g) enshrines the fundamental duty of every citizen to have compassion for all living creatures. The Supreme Court extended Article 21 (Right to Life and Dignity) to animals.',
+        mandate: 'Establishes peaceful coexistence as a constitutional value across public institutions.'
+      }
+    ];
+
+    const CuteCharacterSVG = ({ characterId, state, frame }) => {
+      const isFleeing = state === 'fleeing';
+      const isWelcoming = state === 'welcoming';
+      const isResting = state === 'resting';
+
+      const bounce = isResting
+        ? Math.sin(frame * 0.08) * 1.5
+        : Math.abs(Math.sin(frame * (isFleeing ? 0.45 : 0.22))) * (isFleeing ? -10 : -5);
+      const legSwing = isResting ? 0 : Math.sin(frame * (isFleeing ? 0.48 : 0.24)) * 9;
+      const wag = Math.sin(frame * (isFleeing || isWelcoming ? 0.55 : 0.2)) * 12;
+      const blink = !isFleeing && Math.sin(frame * 0.045) > 0.96;
+
+      const renderOverlayEffects = () => (
+        <g>
+          {isWelcoming && (
+            <g transform={`translate(0, ${Math.sin(frame * 0.18) * 3})`}>
+              <path d="M 28 24 L 31 16 L 34 24 L 42 27 L 34 30 L 31 38 L 28 30 L 20 27 Z" fill="#D9A05B" />
+              <circle cx="136" cy="22" r="3" fill="#C86D51" />
+              <path
+                d="M 124 14 C 124 10, 130 10, 130 14 C 130 10, 136 10, 136 14 C 136 20, 130 24, 130 26 C 130 24, 124 20, 124 14 Z"
+                fill="#C86D51"
+              />
+            </g>
+          )}
+          {isFleeing && (
+            <g>
+              <path d="M 136 18 Q 142 26 136 31 Q 130 26 136 18 Z" fill="#5BA4CF" stroke="#1C2826" strokeWidth="1.3" />
+              <line x1="18" y1="54" x2="6" y2="54" stroke="#C86D51" strokeWidth="2.2" strokeLinecap="round" />
+              <line x1="20" y1="66" x2="4" y2="68" stroke="#C86D51" strokeWidth="2.2" strokeLinecap="round" />
+            </g>
+          )}
+        </g>
+      );
+
+      if (characterId === 'sheru') {
+        return (
+          <svg width="156" height="136" viewBox="0 0 156 136" className="overflow-visible select-none" style={{ filter: 'drop-shadow(0 10px 16px rgba(28, 40, 38, 0.14))' }}>
+            <ellipse cx="78" cy="122" rx={isFleeing ? 36 : 44} ry="6" fill="#1C2826" opacity="0.13" />
+            {renderOverlayEffects()}
+            <g transform={`translate(0, ${bounce})`}>
+              <path d={`M 42 78 Q 18 ${58 + wag} 28 ${38 + wag * 0.6}`} stroke="#D6955B" strokeWidth="10" strokeLinecap="round" fill="none" />
+              <path d={`M 42 78 Q 18 ${58 + wag} 28 ${38 + wag * 0.6}`} stroke="#1C2826" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+              <rect x={48 - legSwing * 0.6} y="92" width="12" height="24" rx="6" fill="#B87943" stroke="#1C2826" strokeWidth="1.8" />
+              <rect x={92 + legSwing * 0.6} y="92" width="12" height="24" rx="6" fill="#B87943" stroke="#1C2826" strokeWidth="1.8" />
+              <rect x="38" y="64" width="74" height="40" rx="20" fill="#E3A369" stroke="#1C2826" strokeWidth="2" />
+              <ellipse cx="75" cy="88" rx="24" ry="11" fill="#FAF3E8" />
+              <g transform={`translate(${legSwing}, 0)`}>
+                <rect x="52" y="94" width="13" height="25" rx="6.5" fill="#E3A369" stroke="#1C2826" strokeWidth="1.8" />
+                <ellipse cx="58.5" cy="116" rx="7" ry="4.5" fill="#FAF7F2" stroke="#1C2826" strokeWidth="1.6" />
+              </g>
+              <g transform={`translate(${-legSwing}, 0)`}>
+                <rect x="96" y="94" width="13" height="25" rx="6.5" fill="#E3A369" stroke="#1C2826" strokeWidth="1.8" />
+                <ellipse cx="102.5" cy="116" rx="7" ry="4.5" fill="#FAF7F2" stroke="#1C2826" strokeWidth="1.6" />
+              </g>
+              <path d="M 82 64 L 114 64 L 102 86 Z" fill="#C86D51" stroke="#1C2826" strokeWidth="1.8" strokeLinejoin="round" />
+              <circle cx="102" cy="87" r="4.5" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.5" />
+              <g transform={`translate(0, ${isWelcoming ? Math.sin(frame * 0.25) * -2 : 0})`}>
+                <path d="M 80 34 Q 64 38 66 58 Q 72 64 80 52 Z" fill="#9E6231" stroke="#1C2826" strokeWidth="1.8" />
+                <ellipse cx="102" cy="48" rx="26" ry="23" fill="#E3A369" stroke="#1C2826" strokeWidth="2" />
+                <ellipse cx="108" cy="54" rx="16" ry="13" fill="#FAF3E8" />
+                <path
+                  d={isFleeing ? 'M 114 30 L 126 12 L 132 20 L 128 24 L 134 26 L 124 38 Z' : 'M 116 32 Q 134 34 134 52 L 127 52 L 129 46 L 123 49 Q 118 44 116 32 Z'}
+                  fill="#9E6231"
+                  stroke="#1C2826"
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+                {blink ? (
+                  <>
+                    <path d="M 92 45 Q 96 49 100 45" stroke="#1C2826" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                    <path d="M 112 45 Q 116 49 120 45" stroke="#1C2826" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                  </>
+                ) : (
+                  <>
+                    <circle cx="96" cy="45" r={isFleeing ? 5.2 : 4.6} fill="#1C2826" />
+                    <circle cx="94.5" cy="43.2" r="1.8" fill="#FFFFFF" />
+                    <circle cx="97.5" cy="46.5" r="0.9" fill="#FFFFFF" />
+                    <circle cx="116" cy="45" r={isFleeing ? 5.2 : 4.6} fill="#1C2826" />
+                    <circle cx="114.5" cy="43.2" r="1.8" fill="#FFFFFF" />
+                    <circle cx="117.5" cy="46.5" r="0.9" fill="#FFFFFF" />
+                  </>
+                )}
+                <ellipse cx="88" cy="53" rx="4.5" ry="2.6" fill="#E88D82" opacity="0.65" />
+                <ellipse cx="122" cy="53" rx="4.5" ry="2.6" fill="#E88D82" opacity="0.65" />
+                <ellipse cx="107" cy="52" rx="4.5" ry="3.2" fill="#1C2826" />
+                <ellipse cx="106" cy="51" rx="1.4" ry="0.8" fill="#FFFFFF" opacity="0.7" />
+                {isFleeing ? (
+                  <circle cx="107" cy="59" r="3" fill="#C86D51" stroke="#1C2826" strokeWidth="1.4" />
+                ) : (
+                  <>
+                    <path d="M 101 57 Q 104 61 107 57 Q 110 61 113 57" stroke="#1C2826" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                    <path d="M 105 58 Q 107 65 109 58 Z" fill="#E88D82" stroke="#1C2826" strokeWidth="1.3" />
+                  </>
+                )}
+              </g>
+            </g>
+          </svg>
+        );
+      }
+
+      if (characterId === 'milo') {
+        return (
+          <svg width="152" height="134" viewBox="0 0 152 134" className="overflow-visible select-none" style={{ filter: 'drop-shadow(0 10px 16px rgba(28, 40, 38, 0.14))' }}>
+            <ellipse cx="78" cy="120" rx="40" ry="5.5" fill="#1C2826" opacity="0.13" />
+            {renderOverlayEffects()}
+            <g transform={`translate(0, ${bounce})`}>
+              <path d={`M 42 84 Q 14 ${64 + wag} 24 ${36 + wag * 0.5}`} stroke="#E07A5F" strokeWidth="11" strokeLinecap="round" fill="none" />
+              <path d={`M 42 84 Q 14 ${64 + wag} 24 ${36 + wag * 0.5}`} stroke="#1C2826" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+              <rect x={48 + legSwing * 0.5} y="96" width="12" height="20" rx="6" fill="#FAF3E8" stroke="#1C2826" strokeWidth="1.8" />
+              <rect x={90 - legSwing * 0.5} y="96" width="12" height="20" rx="6" fill="#FAF3E8" stroke="#1C2826" strokeWidth="1.8" />
+              <ellipse cx="74" cy="84" rx="35" ry="24" fill="#E07A5F" stroke="#1C2826" strokeWidth="2" />
+              <ellipse cx="76" cy="90" rx="22" ry="15" fill="#FAF3E8" />
+              <path d="M 60 62 Q 62 72 58 76" stroke="#A84A32" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+              <path d="M 72 60 Q 74 71 70 76" stroke="#A84A32" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+              <rect x={58 - legSwing * 0.6} y="98" width="12" height="20" rx="6" fill="#FAF3E8" stroke="#1C2826" strokeWidth="1.8" />
+              <rect x={84 + legSwing * 0.6} y="98" width="12" height="20" rx="6" fill="#FAF3E8" stroke="#1C2826" strokeWidth="1.8" />
+              <path d="M 82 64 Q 98 72 112 62" stroke="#3A5A40" strokeWidth="5" strokeLinecap="round" fill="none" />
+              <circle cx="98" cy="70" r="4.5" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.5" />
+              <g>
+                <polygon points="78,38 74,14 94,28" fill="#E07A5F" stroke="#1C2826" strokeWidth="2" strokeLinejoin="round" />
+                <polygon points="79,34 77,20 90,29" fill="#F4A298" />
+                <polygon points="104,28 118,16 124,20 120,38" fill="#E07A5F" stroke="#1C2826" strokeWidth="2" strokeLinejoin="round" />
+                <polygon points="107,30 116,21 118,34" fill="#F4A298" />
+                <ellipse cx="98" cy="48" rx="26" ry="22" fill="#E07A5F" stroke="#1C2826" strokeWidth="2" />
+                <path d="M 80 52 Q 98 38 116 52 Q 118 68 98 68 Q 78 68 80 52 Z" fill="#FAF3E8" />
+                <path d="M 92 31 L 95 36 L 98 31 L 101 36 L 104 31" stroke="#A84A32" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                {blink ? (
+                  <>
+                    <path d="M 84 46 Q 89 50 94 46" stroke="#1C2826" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                    <path d="M 104 46 Q 109 50 114 46" stroke="#1C2826" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                  </>
+                ) : (
+                  <>
+                    <circle cx="88" cy="46" r="5.4" fill="#2E5A44" stroke="#1C2826" strokeWidth="1.5" />
+                    <circle cx="88" cy="46" r={isFleeing ? 2.2 : 3.2} fill="#1C2826" />
+                    <circle cx="86.2" cy="44" r="1.9" fill="#FFFFFF" />
+                    <circle cx="108" cy="46" r="5.4" fill="#2E5A44" stroke="#1C2826" strokeWidth="1.5" />
+                    <circle cx="108" cy="46" r={isFleeing ? 2.2 : 3.2} fill="#1C2826" />
+                    <circle cx="106.2" cy="44" r="1.9" fill="#FFFFFF" />
+                  </>
+                )}
+                <ellipse cx="80" cy="54" rx="4.2" ry="2.4" fill="#F4A298" opacity="0.8" />
+                <ellipse cx="116" cy="54" rx="4.2" ry="2.4" fill="#F4A298" opacity="0.8" />
+                <polygon points="95,51 101,51 98,55" fill="#E88D82" stroke="#1C2826" strokeWidth="1.4" />
+                <path d="M 92 57 Q 95 60 98 56 Q 101 60 104 57" stroke="#1C2826" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                <line x1="76" y1="51" x2="64" y2="49" stroke="#1C2826" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="76" y1="55" x2="65" y2="56" stroke="#1C2826" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="120" y1="51" x2="132" y2="49" stroke="#1C2826" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="120" y1="55" x2="131" y2="56" stroke="#1C2826" strokeWidth="1.5" strokeLinecap="round" />
+              </g>
+            </g>
+          </svg>
+        );
+      }
+
+      if (characterId === 'chikki') {
+        return (
+          <svg width="154" height="136" viewBox="0 0 154 136" className="overflow-visible select-none" style={{ filter: 'drop-shadow(0 10px 16px rgba(28, 40, 38, 0.14))' }}>
+            <ellipse cx="82" cy="122" rx="34" ry="5" fill="#1C2826" opacity="0.13" />
+            {renderOverlayEffects()}
+            <g transform={`translate(0, ${bounce})`}>
+              <path d={`M 58 96 Q 14 ${94 + wag * 0.5} 18 ${50 + wag * 0.4} Q 22 18 52 30 Q 68 38 56 66 Q 52 82 62 94 Z`} fill="#C88A56" stroke="#1C2826" strokeWidth="2" />
+              <path d="M 32 68 Q 28 42 46 38" stroke="#FAF3E8" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.7" />
+              <ellipse cx="78" cy="84" rx="24" ry="26" fill="#C88A56" stroke="#1C2826" strokeWidth="2" />
+              <ellipse cx="84" cy="86" rx="15" ry="19" fill="#FAF3E8" />
+              <path d="M 62 66 Q 58 82 63 98" stroke="#4A321F" strokeWidth="3" strokeLinecap="round" fill="none" />
+              <path d="M 66 65 Q 62 82 67 98" stroke="#FAF3E8" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+              <path d="M 70 66 Q 66 82 71 98" stroke="#4A321F" strokeWidth="3" strokeLinecap="round" fill="none" />
+              <ellipse cx={72 - legSwing * 0.5} cy="112" rx="9" ry="5" fill="#A66B3B" stroke="#1C2826" strokeWidth="1.8" />
+              <ellipse cx={90 + legSwing * 0.5} cy="112" rx="9" ry="5" fill="#A66B3B" stroke="#1C2826" strokeWidth="1.8" />
+              <circle cx="76" cy="36" r="8" fill="#A66B3B" stroke="#1C2826" strokeWidth="1.8" />
+              <circle cx="96" cy="34" r="8" fill="#A66B3B" stroke="#1C2826" strokeWidth="1.8" />
+              <circle cx="96" cy="34" r="4" fill="#F4A298" />
+              <ellipse cx="88" cy="52" rx="22" ry="19" fill="#C88A56" stroke="#1C2826" strokeWidth="2" />
+              <circle cx="96" cy="58" r="11" fill="#FAF3E8" />
+              <circle cx="84" cy="48" r="4.8" fill="#1C2826" />
+              <circle cx="82.5" cy="46.2" r="1.8" fill="#FFFFFF" />
+              <circle cx="101" cy="48" r="4.8" fill="#1C2826" />
+              <circle cx="99.5" cy="46.2" r="1.8" fill="#FFFFFF" />
+              <ellipse cx="77" cy="56" rx="4" ry="2.5" fill="#E88D82" opacity="0.75" />
+              <ellipse cx="105" cy="53" rx="3.2" ry="2.2" fill="#1C2826" />
+              <rect x="96" y="58" width="4.5" height="4" rx="1" fill="#FFFFFF" stroke="#1C2826" strokeWidth="1.2" />
+              <g transform={`translate(0, ${Math.sin(frame * 0.3) * 2})`}>
+                <circle cx="104" cy="78" r="9" fill="#B57239" stroke="#1C2826" strokeWidth="1.8" />
+                <path d="M 94 74 Q 104 64 114 74 Z" fill="#5E3A1E" stroke="#1C2826" strokeWidth="1.8" />
+                <line x1="104" y1="67" x2="106" y2="62" stroke="#1C2826" strokeWidth="2" strokeLinecap="round" />
+                <ellipse cx="94" cy="77" rx="6" ry="4" fill="#C88A56" stroke="#1C2826" strokeWidth="1.6" />
+              </g>
+            </g>
+          </svg>
+        );
+      }
+
+      if (characterId === 'pihu') {
+        return (
+          <svg width="164" height="138" viewBox="0 0 164 138" className="overflow-visible select-none" style={{ filter: 'drop-shadow(0 10px 16px rgba(28, 40, 38, 0.14))' }}>
+            <ellipse cx="84" cy="124" rx="40" ry="5.5" fill="#1C2826" opacity="0.13" />
+            {renderOverlayEffects()}
+            <g transform={`translate(0, ${bounce})`}>
+              <g transform={`rotate(${wag * 0.3}, 74, 82)`}>
+                <ellipse cx="48" cy="64" rx="34" ry="28" fill="#3A6B56" stroke="#1C2826" strokeWidth="2" />
+                <circle cx="28" cy="54" r="6.5" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.2" />
+                <circle cx="28" cy="54" r="3.2" fill="#23576E" />
+                <circle cx="42" cy="42" r="6.5" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.2" />
+                <circle cx="42" cy="42" r="3.2" fill="#23576E" />
+                <circle cx="62" cy="40" r="6.5" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.2" />
+                <circle cx="62" cy="40" r="3.2" fill="#23576E" />
+                <circle cx="28" cy="74" r="6" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.2" />
+                <circle cx="28" cy="74" r="3" fill="#23576E" />
+              </g>
+              <line x1="76" y1="98" x2={72 - legSwing * 0.5} y2="120" stroke="#D9824B" strokeWidth="3.5" strokeLinecap="round" />
+              <line x1="92" y1="98" x2={96 + legSwing * 0.5} y2="120" stroke="#D9824B" strokeWidth="3.5" strokeLinecap="round" />
+              <ellipse cx="84" cy="82" rx="28" ry="22" fill="#23576E" stroke="#1C2826" strokeWidth="2" />
+              <path d="M 66 78 Q 84 68 98 84 Q 82 96 66 78 Z" fill="#488B8F" stroke="#1C2826" strokeWidth="1.6" />
+              <g>
+                <line x1="92" y1="30" x2="86" y2="14" stroke="#1C2826" strokeWidth="1.8" />
+                <circle cx="86" cy="14" r="3.5" fill="#23576E" stroke="#1C2826" strokeWidth="1.4" />
+                <line x1="98" y1="28" x2="98" y2="11" stroke="#1C2826" strokeWidth="1.8" />
+                <circle cx="98" cy="11" r="3.8" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.4" />
+                <line x1="104" y1="30" x2="110" y2="15" stroke="#1C2826" strokeWidth="1.8" />
+                <circle cx="110" cy="15" r="3.5" fill="#23576E" stroke="#1C2826" strokeWidth="1.4" />
+                <circle cx="98" cy="48" r="20" fill="#23576E" stroke="#1C2826" strokeWidth="2" />
+                <ellipse cx="102" cy="50" rx="12" ry="10" fill="#FAF7F2" />
+                <circle cx="102" cy="47" r="4.8" fill="#1C2826" />
+                <circle cx="100.5" cy="45.2" r="1.8" fill="#FFFFFF" />
+                <ellipse cx="96" cy="54" rx="4" ry="2.2" fill="#F4A298" opacity="0.8" />
+                <polygon points="114,45 128,50 114,55" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.8" strokeLinejoin="round" />
+              </g>
+            </g>
+          </svg>
+        );
+      }
+
+      if (characterId === 'biscuit') {
+        return (
+          <svg width="150" height="134" viewBox="0 0 150 134" className="overflow-visible select-none" style={{ filter: 'drop-shadow(0 10px 16px rgba(28, 40, 38, 0.14))' }}>
+            <ellipse cx="76" cy="120" rx="36" ry="5.5" fill="#1C2826" opacity="0.13" />
+            {renderOverlayEffects()}
+            <g transform={`translate(0, ${bounce})`}>
+              <path d={`M 46 84 Q 26 ${68 + wag * 1.2} 32 ${54 + wag}`} stroke="#FAF3E8" strokeWidth="9" strokeLinecap="round" fill="none" />
+              <path d={`M 46 84 Q 26 ${68 + wag * 1.2} 32 ${54 + wag}`} stroke="#1C2826" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+              <ellipse cx="72" cy="86" rx="28" ry="21" fill="#FAF3E8" stroke="#1C2826" strokeWidth="2" />
+              <ellipse cx="62" cy="78" rx="14" ry="11" fill="#C98A55" />
+              <ellipse cx={54 + legSwing * 0.6} cy="111" rx="9.5" ry="6.5" fill="#FAF3E8" stroke="#1C2826" strokeWidth="1.8" />
+              <ellipse cx={90 - legSwing * 0.6} cy="111" rx="9.5" ry="6.5" fill="#FAF3E8" stroke="#1C2826" strokeWidth="1.8" />
+              <path d="M 78 68 Q 92 75 104 66" stroke="#5BA4CF" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+              <circle cx="93" cy="73" r="4" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.4" />
+              <g>
+                <ellipse cx="92" cy="48" rx="26" ry="23" fill="#FAF3E8" stroke="#1C2826" strokeWidth="2" />
+                <ellipse cx="82" cy="45" rx="11" ry="10" fill="#C98A55" />
+                <path d="M 72 32 Q 56 38 60 60 Q 68 64 74 48 Z" fill="#8C5832" stroke="#1C2826" strokeWidth="1.8" />
+                <path d="M 108 32 Q 124 38 120 60 Q 112 64 106 48 Z" fill="#8C5832" stroke="#1C2826" strokeWidth="1.8" />
+                <circle cx="82" cy="46" r="5.4" fill="#1C2826" />
+                <circle cx="80.2" cy="44" r="2.1" fill="#FFFFFF" />
+                <circle cx="83.8" cy="47.8" r="1" fill="#FFFFFF" />
+                <circle cx="102" cy="46" r="5.4" fill="#1C2826" />
+                <circle cx="100.2" cy="44" r="2.1" fill="#FFFFFF" />
+                <circle cx="103.8" cy="47.8" r="1" fill="#FFFFFF" />
+                <ellipse cx="74" cy="54" rx="4" ry="2.4" fill="#F4A298" opacity="0.8" />
+                <ellipse cx="110" cy="54" rx="4" ry="2.4" fill="#F4A298" opacity="0.8" />
+                <ellipse cx="92" cy="52" rx="4.2" ry="3" fill="#1C2826" />
+                <path d="M 87 57 Q 92 61 97 57" stroke="#1C2826" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                <path d="M 90 58 Q 92 64 94 58 Z" fill="#E88D82" stroke="#1C2826" strokeWidth="1.2" />
+              </g>
+            </g>
+          </svg>
+        );
+      }
+
+      return (
+        <svg width="148" height="136" viewBox="0 0 148 136" className="overflow-visible select-none" style={{ filter: 'drop-shadow(0 10px 16px rgba(28, 40, 38, 0.14))' }}>
+          <ellipse cx="74" cy="120" rx="34" ry="5.5" fill="#1C2826" opacity="0.13" />
+          {renderOverlayEffects()}
+          <g transform={`translate(0, ${bounce})`}>
+            <ellipse cx="62" cy="112" rx="7" ry="4" fill="#D9A05B" stroke="#1C2826" strokeWidth="1.6" />
+            <ellipse cx="86" cy="112" rx="7" ry="4" fill="#D9A05B" stroke="#1C2826" strokeWidth="1.6" />
+            <ellipse cx="74" cy="70" rx="34" ry="40" fill="#8C6D53" stroke="#1C2826" strokeWidth="2" />
+            <ellipse cx="74" cy="80" rx="23" ry="26" fill="#FAF3E8" />
+            <path d="M 62 72 Q 66 76 70 72 M 78 72 Q 82 76 86 72" stroke="#8C6D53" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+            <path d="M 58 84 Q 62 88 66 84 M 70 84 Q 74 88 78 84 M 82 84 Q 86 88 90 84" stroke="#8C6D53" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+            <path d="M 64 96 Q 68 100 72 96 M 76 96 Q 80 100 84 96" stroke="#8C6D53" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+            <path d={isFleeing || isWelcoming ? `M 42 62 Q 16 ${44 + wag} 30 82 Z` : 'M 42 58 Q 34 80 46 96 Z'} fill="#6E523C" stroke="#1C2826" strokeWidth="1.8" />
+            <path d={isFleeing || isWelcoming ? `M 106 62 Q 132 ${44 - wag} 118 82 Z` : 'M 106 58 Q 114 80 102 96 Z'} fill="#6E523C" stroke="#1C2826" strokeWidth="1.8" />
+            <polygon points="48,38 42,22 60,32" fill="#6E523C" stroke="#1C2826" strokeWidth="1.8" strokeLinejoin="round" />
+            <polygon points="100,38 106,22 88,32" fill="#6E523C" stroke="#1C2826" strokeWidth="1.8" strokeLinejoin="round" />
+            <circle cx="61" cy="50" r="13" fill="#FAF3E8" stroke="#6E523C" strokeWidth="2" />
+            <circle cx="87" cy="50" r="13" fill="#FAF3E8" stroke="#6E523C" strokeWidth="2" />
+            <circle cx="61" cy="50" r="8.5" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.6" />
+            <circle cx="61" cy="50" r={isFleeing ? 3.5 : 5.2} fill="#1C2826" />
+            <circle cx="59" cy="48" r="2" fill="#FFFFFF" />
+            <circle cx="87" cy="50" r="8.5" fill="#E9B85B" stroke="#1C2826" strokeWidth="1.6" />
+            <circle cx="87" cy="50" r={isFleeing ? 3.5 : 5.2} fill="#1C2826" />
+            <circle cx="85" cy="48" r="2" fill="#FFFFFF" />
+            <polygon points="71,53 77,53 74,60" fill="#D9A05B" stroke="#1C2826" strokeWidth="1.5" strokeLinejoin="round" />
+            <ellipse cx="48" cy="58" rx="3.8" ry="2.2" fill="#F4A298" opacity="0.75" />
+            <ellipse cx="100" cy="58" rx="3.8" ry="2.2" fill="#F4A298" opacity="0.75" />
+          </g>
+        </svg>
+      );
+    };
+
+    function App() {
+      const [activePage, setActivePage] = useState('overview');
+      const [wiiModalOpen, setWiiModalOpen] = useState(false);
+      const [sosModalOpen, setSosModalOpen] = useState(false);
+      const [toast, setToast] = useState(null);
+
+      const [dirFilter, setDirFilter] = useState('All');
+      const [dirSearch, setDirSearch] = useState('');
+      const [selectedSector, setSelectedSector] = useState(CAMPUS_SECTORS[0]);
+      const [activeSopTab, setActiveSopTab] = useState('injured');
+      const [faqCategory, setFaqCategory] = useState('All');
+      const [faqSearch, setFaqSearch] = useState('');
+      const [openFaqId, setOpenFaqId] = useState(1);
+
+      const [sponsorshipTier, setSponsorshipTier] = useState(500);
+      const [adoptionForm, setAdoptionForm] = useState({
+        name: '',
+        affiliation: 'Faculty / Staff Resident',
+        email: '',
+        phone: '',
+        animal: 'Rusty Jr. (CCF-04 • Indie Pup > 60 Days)',
+        consent: false
+      });
+
+      const [companionEnabled, setCompanionEnabled] = useState(true);
+
+      const currentCompanion = useMemo(() => {
+        return PAGE_COMPANIONS[activePage] || PAGE_COMPANIONS.overview;
+      }, [activePage]);
+
+      const companionRef = useRef({
+        x: 480,
+        y: 220,
+        targetX: 480,
+        targetY: 220,
+        vx: 0,
+        vy: 0,
+        facingRight: true,
+        state: 'welcoming',
+        welcomeTimer: 210,
+        fleeCooldown: 0,
+        idlePauseTimer: 0,
+        biscuitX: null,
+        biscuitY: null,
+        speech: PAGE_COMPANIONS.overview.welcomeText,
+        frame: 0
+      });
+
+      const mouseRef = useRef({ x: -9999, y: -9999 });
+      const [, setTick] = useState(0);
+
+      const notify = (msg) => {
+        setToast(msg);
+        setTimeout(() => {
+          setToast((prev) => (prev === msg ? null : prev));
+        }, 4200);
+      };
+
+      const triggerPageWelcome = (pageKey) => {
+        const meta = PAGE_COMPANIONS[pageKey] || PAGE_COMPANIONS.overview;
+        const w = typeof window !== 'undefined' ? window.innerWidth : 1100;
+        const c = companionRef.current;
+
+        const welcomeX = Math.min(Math.max(w * 0.64, 240), w - 240);
+        const welcomeY = 215;
+
+        c.x = welcomeX;
+        c.y = welcomeY - 25;
+        c.targetX = welcomeX;
+        c.targetY = welcomeY;
+        c.facingRight = false;
+        c.state = 'welcoming';
+        c.welcomeTimer = 215;
+        c.fleeCooldown = 0;
+        c.biscuitX = null;
+        c.biscuitY = null;
+        c.speech = meta.welcomeText;
+      };
+
+      useEffect(() => {
+        triggerPageWelcome(activePage);
+      }, [activePage]);
+
+      const startRoamingNow = () => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const c = companionRef.current;
+        c.state = 'roaming';
+        c.welcomeTimer = 0;
+        c.speech = 'Yay! Let’s explore the page together~ ♥';
+        c.targetX = 140 + Math.random() * (w - 280);
+        c.targetY = 180 + Math.random() * (h - 320);
+        setTimeout(() => {
+          if (companionRef.current && companionRef.current.state !== 'welcoming') {
+            companionRef.current.speech = null;
+          }
+        }, 1800);
+      };
+
+      useEffect(() => {
+        const onMove = (e) => {
+          mouseRef.current = { x: e.clientX, y: e.clientY };
+        };
+        const onLeave = () => {
+          mouseRef.current = { x: -9999, y: -9999 };
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseleave', onLeave);
+        return () => {
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('mouseleave', onLeave);
+        };
+      }, []);
+
+      useEffect(() => {
+        if (!companionEnabled) return;
+
+        let rafId;
+        const ESCAPE_DISTANCE = 155;
+
+        const stepSimulation = () => {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          const c = companionRef.current;
+          const mx = mouseRef.current.x;
+          const my = mouseRef.current.y;
+
+          c.frame += 1;
+
+          if (c.state === 'welcoming') {
+            c.y += (c.targetY - c.y) * 0.12;
+            c.welcomeTimer -= 1;
+
+            if (c.welcomeTimer <= 0) {
+              c.state = 'roaming';
+              c.speech = null;
+              c.targetX = 140 + Math.random() * Math.max(w - 280, 200);
+              c.targetY = 170 + Math.random() * Math.max(h - 300, 200);
+            }
+
+            setTick((t) => (t + 1) % 10000);
+            rafId = requestAnimationFrame(stepSimulation);
+            return;
+          }
+
+          const dxCursor = c.x - mx;
+          const dyCursor = c.y - my;
+          const distCursor = Math.hypot(dxCursor, dyCursor);
+
+          if (distCursor < ESCAPE_DISTANCE && distCursor > 1) {
+            if (c.state !== 'fleeing') {
+              const fleeLines = currentCompanion.fleeTexts;
+              c.speech = fleeLines[Math.floor(Math.random() * fleeLines.length)];
+            }
+            c.state = 'fleeing';
+            c.biscuitX = null;
+            c.biscuitY = null;
+            c.fleeCooldown = 52;
+
+            const normX = dxCursor / distCursor;
+            const normY = dyCursor / distCursor;
+            const rawTargetX = c.x + normX * 290 + (Math.random() - 0.5) * 120;
+            const rawTargetY = c.y + normY * 220 + (Math.random() - 0.5) * 120;
+
+            c.targetX = Math.min(Math.max(rawTargetX, 110), w - 120);
+            c.targetY = Math.min(Math.max(rawTargetY, 135), h - 125);
+          } else if (c.fleeCooldown > 0) {
+            c.fleeCooldown -= 1;
+            if (c.fleeCooldown === 0) {
+              c.state = 'roaming';
+              c.speech = null;
+            }
+          }
+
+          const destX = c.biscuitX !== null ? c.biscuitX : c.targetX;
+          const destY = c.biscuitY !== null ? c.biscuitY : c.targetY;
+          const dx = destX - c.x;
+          const dy = destY - c.y;
+          const distToDest = Math.hypot(dx, dy);
+
+          if (distToDest > 10) {
+            const speed = c.state === 'fleeing' ? 5.6 : c.biscuitX !== null ? 3.2 : 1.45;
+            c.vx = (dx / distToDest) * speed;
+            c.vy = (dy / distToDest) * speed;
+            c.x += c.vx;
+            c.y += c.vy;
+
+            if (Math.abs(c.vx) > 0.15) {
+              c.facingRight = c.vx > 0;
+            }
+          } else {
+            c.vx = 0;
+            c.vy = 0;
+
+            if (c.biscuitX !== null) {
+              c.biscuitX = null;
+              c.biscuitY = null;
+              c.state = 'resting';
+              c.idlePauseTimer = 110;
+              c.speech = 'Yum!! Thank you for the campus treat! ♥';
+            } else if (c.state !== 'resting') {
+              c.state = 'resting';
+              c.idlePauseTimer = 75 + Math.floor(Math.random() * 80);
+              if (Math.random() < 0.45) {
+                const thoughts = currentCompanion.idleThoughts;
+                c.speech = thoughts[Math.floor(Math.random() * thoughts.length)];
+              }
+            } else {
+              c.idlePauseTimer -= 1;
+              if (c.idlePauseTimer <= 0) {
+                c.state = 'roaming';
+                c.speech = null;
+                c.targetX = 110 + Math.random() * Math.max(w - 230, 180);
+                c.targetY = 140 + Math.random() * Math.max(h - 260, 180);
+              }
+            }
+          }
+
+          c.x = Math.min(Math.max(c.x, 95), w - 105);
+          c.y = Math.min(Math.max(c.y, 125), h - 110);
+
+          setTick((t) => (t + 1) % 10000);
+          rafId = requestAnimationFrame(stepSimulation);
+        };
+
+        rafId = requestAnimationFrame(stepSimulation);
+        return () => cancelAnimationFrame(rafId);
+      }, [companionEnabled, currentCompanion]);
+
+      const offerBiscuit = () => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const c = companionRef.current;
+        c.state = 'roaming';
+        c.welcomeTimer = 0;
+        c.biscuitX = Math.min(Math.max(w * 0.48 + (Math.random() - 0.5) * 180, 180), w - 180);
+        c.biscuitY = Math.min(Math.max(h * 0.65 + (Math.random() - 0.5) * 120, 200), h - 150);
+        c.speech = 'Ooh! A treat for me?! ♥';
+      };
+
+      const filteredFauna = useMemo(() => {
+        return FAUNA_INDEX.filter((item) => {
+          const matchCat = dirFilter === 'All' || item.category === dirFilter;
+          const matchQuery =
+            item.name.toLowerCase().includes(dirSearch.toLowerCase()) ||
+            item.territory.toLowerCase().includes(dirSearch.toLowerCase()) ||
+            item.species.toLowerCase().includes(dirSearch.toLowerCase());
+          return matchCat && matchQuery;
+        });
+      }, [dirFilter, dirSearch]);
+
+      const filteredFaqs = useMemo(() => {
+        return ALL_19_FAQS.filter((item) => {
+          const matchCat = faqCategory === 'All' || item.category === faqCategory;
+          const matchQuery =
+            item.q.toLowerCase().includes(faqSearch.toLowerCase()) ||
+            item.a.toLowerCase().includes(faqSearch.toLowerCase());
+          return matchCat && matchQuery;
+        });
+      }, [faqCategory, faqSearch]);
+
+      const comp = companionRef.current;
+
+      return (
+        <div className="min-h-screen relative selection:bg-[#C86D51]/20 selection:text-[#1C2826]">
+          {companionEnabled && (
+            <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
+              {comp.biscuitX !== null && (
+                <div
+                  style={{ transform: `translate3d(${comp.biscuitX - 18}px, ${comp.biscuitY + 14}px, 0)` }}
+                  className="absolute top-0 left-0 flex flex-col items-center animate-bounce"
+                >
+                  <div className="w-7 h-5 rounded-full bg-[#D9A05B] border-2 border-[#1C2826] shadow-sm flex items-center justify-center text-[10px]">
+                    🍪
+                  </div>
+                  <span className="font-mono-field text-[10px] tracking-wide uppercase mt-1 px-2 py-0.5 rounded-full bg-[#FAF7F2]/95 border border-[#1C2826]/20 text-[#1C2826] shadow-xs">
+                    For {currentCompanion.name}
+                  </span>
+                </div>
+              )}
+
+              <div
+                style={{ transform: `translate3d(${comp.x - 78}px, ${comp.y - 68}px, 0)` }}
+                className="absolute top-0 left-0 will-change-transform"
+              >
+                {comp.speech && (
+                  <div
+                    className={`absolute left-1/2 -translate-x-1/2 bottom-full mb-2 transition-all ${
+                      comp.state === 'welcoming'
+                        ? 'w-72 sm:w-80 p-4 rounded-2xl bg-[#FAF7F2] border-2 border-[#1C2826] shadow-xl pointer-events-auto'
+                        : 'whitespace-nowrap px-3.5 py-1.5 rounded-full bg-[#FAF7F2] border border-[#1C2826]/40 shadow-md'
+                    }`}
+                  >
+                    {comp.state === 'welcoming' ? (
+                      <div className="space-y-2.5 text-left">
+                        <div className="flex items-center justify-between gap-2 border-b border-[#E2DDD3] pb-1.5">
+                          <span className="font-mono-field text-[10px] uppercase tracking-wider text-[#C86D51] font-semibold">
+                            ★ {currentCompanion.badge}
+                          </span>
+                          <span className="font-mono-field text-[10px] text-[#3A5A40]">
+                            Page Host
+                          </span>
+                        </div>
+                        <p className="font-serif-editorial text-sm leading-snug text-[#1C2826]">
+                          “{comp.speech}”
+                        </p>
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-[11px] text-[#5C6663]">
+                            — <strong>{currentCompanion.name}</strong> ({currentCompanion.title})
+                          </span>
+                          <button
+                            onClick={startRoamingNow}
+                            className="px-2.5 py-1 rounded-full bg-[#1C2826] text-[#FAF7F2] text-[11px] font-medium hover:bg-[#C86D51] transition cursor-pointer"
+                          >
+                            Say Hi 👋
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="font-serif-editorial italic text-xs text-[#1C2826]">
+                        {comp.speech}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div
+                  style={{ transform: `scaleX(${comp.facingRight ? 1 : -1})` }}
+                  className="transition-transform duration-200"
+                >
+                  <CuteCharacterSVG
+                    characterId={currentCompanion.id}
+                    state={comp.state}
+                    frame={comp.frame}
+                  />
+                </div>
+
+                <div className="text-center -mt-1">
+                  <span className="inline-flex items-center gap-1.5 font-mono-field text-[10px] tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-[#FAF7F2]/95 border border-[#D5CFC2] text-[#1C2826] shadow-xs">
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        comp.state === 'welcoming'
+                          ? 'bg-[#C86D51] animate-ping'
+                          : comp.state === 'fleeing'
+                          ? 'bg-[#C86D51]'
+                          : 'bg-[#3A5A40]'
+                      }`}
+                    />
+                    <span>
+                      {currentCompanion.name} •{' '}
+                      {comp.state === 'welcoming'
+                        ? 'Welcoming You!'
+                        : comp.state === 'fleeing'
+                        ? 'Zooming Away!'
+                        : comp.state === 'resting'
+                        ? 'Taking a Breather'
+                        : 'Roaming Page'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Minimal Page-Host Companion Dock */}
+          <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-[#FAF7F2]/95 backdrop-blur-md border border-[#D5CFC2] px-4 py-2 rounded-full shadow-lg">
+            <div className="flex items-center gap-2 pr-1">
+              <span className="w-2 h-2 rounded-full bg-[#3A5A40]" />
+              <div className="text-xs">
+                <span className="font-semibold text-[#1C2826]">{currentCompanion.name}</span>
+                <span className="text-[#5C6663] hidden sm:inline"> — {currentCompanion.title}</span>
+              </div>
+            </div>
+
+            <div className="h-3.5 w-[1px] bg-[#D5CFC2]" />
+
+            <button
+              onClick={() => triggerPageWelcome(activePage)}
+              className="px-2.5 py-1 rounded-full text-xs font-medium bg-[#F3EFE6] hover:bg-[#E6DFD3] text-[#1C2826] border border-[#E2DDD3] transition cursor-pointer"
+            >
+              Welcome 👋
+            </button>
+
+            <button
+              onClick={offerBiscuit}
+              className="px-2.5 py-1 rounded-full text-xs font-medium bg-[#C86D51] hover:bg-[#b55d42] text-[#FAF7F2] transition cursor-pointer"
+            >
+              Drop Treat 🍪
+            </button>
+
+            <button
+              onClick={() => setCompanionEnabled(!companionEnabled)}
+              title="Toggle Page Companion"
+              className="text-[11px] font-mono-field text-[#5C6663] hover:text-[#1C2826] px-1.5 cursor-pointer"
+            >
+              {companionEnabled ? 'Hide' : 'Show'}
+            </button>
+          </div>
+
+          {toast && (
+            <div className="fixed top-20 right-6 z-50 max-w-md bg-[#1C2826] text-[#FAF7F2] px-5 py-3.5 rounded-lg shadow-xl border border-[#3A5A40] flex items-center justify-between gap-4 text-xs">
+              <span>{toast}</span>
+              <button onClick={() => setToast(null)} className="opacity-70 hover:opacity-100">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Top Archival Bar */}
+          <div className="border-b border-[#E2DDD3] bg-[#F3EFE6] text-[#4A5552] text-xs py-2 px-4 sm:px-8">
+            <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-3 font-mono-field text-[11px]">
+                <span>INDIAN INSTITUTE OF TECHNOLOGY ROORKEE</span>
+                <span className="hidden md:inline text-[#B8B0A2]">•</span>
+                <span className="hidden md:inline">ROORKEE, UTTARAKHAND 247667</span>
+              </div>
+              <div className="flex items-center gap-5 font-mono-field text-[11px]">
+                <a href="tel:9068001181" className="text-[#C86D51] font-medium hover:underline">
+                  HELPDESK: +91 9068001181
+                </a>
+                <span className="text-[#B8B0A2]">|</span>
+                <span>VET AMBULANCE: 1962</span>
+                <span className="hidden sm:inline text-[#B8B0A2]">|</span>
+                <a href="mailto:ccf@iitr.ac.in" className="hidden sm:inline hover:underline">
+                  ccf@iitr.ac.in
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E2DDD3]">
+            <div className="max-w-6xl mx-auto px-4 sm:px-8 py-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div
+                onClick={() => setActivePage('overview')}
+                className="cursor-pointer flex items-baseline justify-between"
+              >
+                <div>
+                  <h1 className="font-serif-editorial text-2xl sm:text-3xl font-medium tracking-tight text-[#1C2826]">
+                    Committee for Campus Fauna
+                  </h1>
+                  <p className="text-xs text-[#5C6663] mt-0.5">
+                    Official Coexistence, Welfare & Biodiversity Portal — IIT Roorkee
+                  </p>
+                </div>
+              </div>
+
+              <nav className="flex items-center flex-wrap gap-x-5 gap-y-2 text-sm">
+                {[
+                  { id: 'overview', label: 'Overview', pet: '🐕 Sheru' },
+                  { id: 'fauna', label: 'Fauna Directory', pet: '🐈 Milo' },
+                  { id: 'emergency', label: 'Emergency & Vets', pet: '🦚 Pihu' },
+                  { id: 'map', label: 'Feeding Map', pet: '🐿️ Chikki' },
+                  { id: 'adopt', label: 'Adopt & Join', pet: '🐶 Biscuit' },
+                  { id: 'laws', label: 'Laws & 19 FAQs', pet: '🦉 Golu' }
+                ].map((item) => {
+                  const active = activePage === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActivePage(item.id)}
+                      className={`pb-1 transition border-b-2 flex items-center gap-1.5 cursor-pointer ${
+                        active
+                          ? 'border-[#C86D51] text-[#1C2826] font-semibold'
+                          : 'border-transparent text-[#5C6663] hover:text-[#1C2826]'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <span className="font-mono-field text-[10px] px-1.5 py-0.5 rounded bg-[#F3EFE6] text-[#5C6663] border border-[#E2DDD3]">
+                        {item.pet}
+                      </span>
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setSosModalOpen(true)}
+                  className="ml-auto lg:ml-2 px-3.5 py-1.5 rounded bg-[#C86D51] text-[#FAF7F2] text-xs font-medium hover:bg-[#b55d42] transition cursor-pointer"
+                >
+                  Report Emergency
+                </button>
+              </nav>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="max-w-6xl mx-auto px-4 sm:px-8 py-12 relative z-10">
+            {activePage === 'overview' && (
+              <div className="space-y-20">
+                <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start pb-16 border-b border-[#E2DDD3]">
+                  <div className="lg:col-span-8 space-y-6">
+                    <div className="font-mono-field text-xs uppercase tracking-widest text-[#3A5A40]">
+                      FIELD MONOGRAPH • EVERY LIFE MATTERS
+                    </div>
+                    <h2 className="font-serif-editorial text-4xl sm:text-6xl leading-[1.12] font-normal text-[#1C2826]">
+                      Sharing a 365-acre historic campus with fifty-seven species of birds and our native dogs.
+                    </h2>
+                    <p className="text-base sm:text-lg text-[#4A5552] leading-relaxed max-w-2xl">
+                      The Committee for Campus Fauna (CCF) stewards the delicate balance between IIT Roorkee’s human residents and its diverse flora and fauna—administering humane sterilization, rabies immunization, designated feeding zones, and wildlife rescue protocols.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-4 pt-3">
+                      <button
+                        onClick={() => setActivePage('emergency')}
+                        className="px-5 py-3 rounded bg-[#1C2826] text-[#FAF7F2] text-sm font-medium hover:bg-[#2c3e3b] transition cursor-pointer"
+                      >
+                        Emergency & Bite Protocols
+                      </button>
+                      <button
+                        onClick={() => setActivePage('adopt')}
+                        className="px-5 py-3 rounded bg-[#F3EFE6] border border-[#D5CFC2] text-[#1C2826] text-sm font-medium hover:bg-[#EAE4D7] transition cursor-pointer"
+                      >
+                        Adopt or Sponsor a Campus Dog
+                      </button>
+                      <button
+                        onClick={() => setWiiModalOpen(true)}
+                        className="px-4 py-3 text-sm font-medium text-[#3A5A40] underline underline-offset-4 hover:text-[#1C2826] inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Read WII Biodiversity Survey</span>
+                        <ArrowUpRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-4 bg-[#F3EFE6] border border-[#E2DDD3] p-7 rounded-sm space-y-5">
+                    <div className="flex items-center justify-between border-b border-[#E2DDD3] pb-3">
+                      <span className="font-mono-field text-xs uppercase text-[#5C6663]">
+                        WII Ecological Census
+                      </span>
+                      <span className="font-mono-field text-xs text-[#3A5A40]">IIT ROORKEE</span>
+                    </div>
+                    <blockquote className="font-serif-editorial italic text-lg leading-snug text-[#1C2826]">
+                      “A thriving sanctuary of old-growth trees, canal wetlands, and peaceful community fauna within an academic township.”
+                    </blockquote>
+                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[#E2DDD3]">
+                      <div>
+                        <div className="font-serif-editorial text-3xl text-[#1C2826]">57</div>
+                        <div className="text-xs text-[#5C6663]">Documented Bird Species</div>
+                      </div>
+                      <div>
+                        <div className="font-serif-editorial text-3xl text-[#1C2826]">140</div>
+                        <div className="text-xs text-[#5C6663]">Arboreal Tree Varieties</div>
+                      </div>
+                      <div>
+                        <div className="font-serif-editorial text-3xl text-[#1C2826]">91</div>
+                        <div className="text-xs text-[#5C6663]">Medicinal & Wild Herbs</div>
+                      </div>
+                      <div>
+                        <div className="font-serif-editorial text-3xl text-[#C86D51]">125+</div>
+                        <div className="text-xs text-[#5C6663]">Sterilized & Collared Dogs</div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-[#5C6663] pt-2 border-t border-[#E2DDD3] leading-relaxed">
+                      <strong>Meet Our 6 Page Companions:</strong> Every tab on this website has its own dedicated campus animal host that welcomes you on arrival and roams around the page! Hover near <em>{currentCompanion.name}</em> to see a playful escape.
+                    </p>
+                  </div>
+                </section>
+
+                <section className="space-y-8 pb-16 border-b border-[#E2DDD3]">
+                  <div className="max-w-2xl">
+                    <div className="font-mono-field text-xs uppercase tracking-widest text-[#C86D51] mb-2">
+                      VISUAL IDENTIFICATION & CAMPUS RULES
+                    </div>
+                    <h3 className="font-serif-editorial text-3xl font-normal">
+                      How to Read Our Campus Dogs’ Markers
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="border-t-2 border-[#1C2826] pt-4 space-y-2">
+                      <div className="font-mono-field text-xs text-[#5C6663]">MARKER 01 • FAQ #9</div>
+                      <h4 className="font-serif-editorial text-xl font-medium">
+                        The “V” Shaped Ear Notch
+                      </h4>
+                      <p className="text-sm text-[#4A5552] leading-relaxed">
+                        A small V-shaped clip on the tip of the ear is the standard Animal Welfare Board of India (AWBI) mark. It confirms that the dog has been humanely <strong>sterilized and vaccinated against rabies</strong>.
+                      </p>
+                    </div>
+
+                    <div className="border-t-2 border-[#C86D51] pt-4 space-y-2">
+                      <div className="font-mono-field text-xs text-[#5C6663]">MARKER 02 • FAQ #8</div>
+                      <h4 className="font-serif-editorial text-xl font-medium">
+                        Reflective Territory Collars
+                      </h4>
+                      <p className="text-sm text-[#4A5552] leading-relaxed">
+                        Color-coded reflective bands distinguish permanent IIT Roorkee resident dogs from newly entered outsider dogs, while protecting them from night-time vehicular traffic.
+                      </p>
+                    </div>
+
+                    <div className="border-t-2 border-[#3A5A40] pt-4 space-y-2">
+                      <div className="font-mono-field text-xs text-[#5C6663]">RESIDENCY RULE • FAQ #10 & #11</div>
+                      <h4 className="font-serif-editorial text-xl font-medium">
+                        Relocation & Hostel Pet Policy
+                      </h4>
+                      <p className="text-sm text-[#4A5552] leading-relaxed">
+                        Under ABC Rules 2023, relocating stray dogs is illegal as it creates a territory vacuum for unvaccinated dogs. Students are not permitted to keep personal pets inside Bhawans; faculty/staff may keep pets responsibly.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-8">
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                    <div>
+                      <div className="font-mono-field text-xs uppercase tracking-widest text-[#3A5A40] mb-2">
+                        SEASONAL FIELDWORK & DRIVES
+                      </div>
+                      <h3 className="font-serif-editorial text-3xl font-normal">
+                        Current Initiatives at IIT Roorkee
+                      </h3>
+                    </div>
+                    <button
+                      onClick={() => setActivePage('adopt')}
+                      className="text-sm font-medium text-[#C86D51] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Volunteer for a Drive</span>
+                      <ArrowUpRight className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                      {
+                        date: 'OCTOBER — NOVEMBER',
+                        title: 'Autumn Bird Watching Walk',
+                        location: 'Botanical Garden & Upper Ganga Canal',
+                        desc: 'Guided early-morning ornithology walk documenting migratory and resident species from the WII 57-species checklist.'
+                      },
+                      {
+                        date: 'ONGOING CAMPUS DRIVE',
+                        title: 'Campus Food Drive ("Make Every Meal Count")',
+                        location: 'All 6 Designated Bhawan Feeding Sectors',
+                        desc: 'Coordinated collection of wholesome, unspiced nourishment and evening feeding at low-traffic buffer spots.'
+                      },
+                      {
+                        date: 'DECEMBER — FEBRUARY',
+                        title: 'Winter Jute Coats & Vaccination Camp',
+                        location: 'Institute-Wide Sector Patrol',
+                        desc: 'Fitting insulated winter coats for elderly dogs alongside annual anti-rabies booster shots with city veterinarians.'
+                      }
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="p-6 bg-[#F3EFE6] border border-[#E2DDD3] rounded-sm flex flex-col justify-between space-y-4"
+                      >
+                        <div className="space-y-2">
+                          <div className="font-mono-field text-[11px] text-[#3A5A40]">{item.date}</div>
+                          <h4 className="font-serif-editorial text-xl font-medium">{item.title}</h4>
+                          <div className="text-xs text-[#5C6663] font-medium">{item.location}</div>
+                          <p className="text-sm text-[#4A5552] leading-relaxed pt-1">{item.desc}</p>
+                        </div>
+                        <button
+                          onClick={() => notify(`Registered your interest for: ${item.title}`)}
+                          className="text-xs font-mono-field uppercase tracking-wider text-[#1C2826] pt-3 border-t border-[#E2DDD3] text-left hover:text-[#C86D51] cursor-pointer"
+                        >
+                          + Join Field Roster →
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {activePage === 'fauna' && (
+              <div className="space-y-10">
+                <div className="border-b border-[#E2DDD3] pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                  <div>
+                    <div className="font-mono-field text-xs uppercase tracking-widest text-[#3A5A40] mb-2">
+                      SPECIMEN & RESIDENT LEDGER
+                    </div>
+                    <h2 className="font-serif-editorial text-4xl font-normal">
+                      Campus Fauna Directory
+                    </h2>
+                    <p className="text-sm text-[#5C6663] mt-1">
+                      Cataloged community dogs, cats, and protected wild fauna residing within IIT Roorkee.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5C6663]" />
+                      <input
+                        type="text"
+                        placeholder="Search name or Bhawan..."
+                        value={dirSearch}
+                        onChange={(e) => setDirSearch(e.target.value)}
+                        className="pl-9 pr-4 py-2 bg-[#F3EFE6] border border-[#D5CFC2] rounded text-xs outline-none focus:border-[#1C2826]"
+                      />
+                    </div>
+                    {['All', 'Dogs', 'Cats', 'Birds & Wildlife'].map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setDirFilter(cat)}
+                        className={`px-3 py-2 rounded text-xs font-medium transition cursor-pointer ${
+                          dirFilter === cat
+                            ? 'bg-[#1C2826] text-[#FAF7F2]'
+                            : 'bg-[#F3EFE6] text-[#4A5552] hover:bg-[#EAE4D7]'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredFauna.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-[#F3EFE6] border border-[#E2DDD3] p-6 rounded-sm flex flex-col justify-between space-y-5"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between border-b border-[#E2DDD3] pb-2.5">
+                          <span className="font-mono-field text-xs text-[#5C6663]">{item.id}</span>
+                          <span className="font-mono-field text-[11px] text-[#3A5A40]">
+                            {item.category}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="font-serif-editorial text-2xl font-medium text-[#1C2826]">
+                            {item.name}
+                          </h3>
+                          <p className="font-serif-editorial italic text-xs text-[#5C6663]">
+                            {item.species}
+                          </p>
+                        </div>
+                        <div className="space-y-1.5 text-xs text-[#4A5552] pt-1">
+                          <div>
+                            <strong className="text-[#1C2826]">Territory:</strong> {item.territory}
+                          </div>
+                          <div>
+                            <strong className="text-[#1C2826]">Collar / ID:</strong> {item.collar}
+                          </div>
+                          <div>
+                            <strong className="text-[#1C2826]">Ear V-Notch:</strong> {item.earNotch}
+                          </div>
+                          <div>
+                            <strong className="text-[#1C2826]">Medical Status:</strong> {item.medical}
+                          </div>
+                        </div>
+                        <p className="text-xs text-[#4A5552] leading-relaxed border-t border-[#E2DDD3] pt-3">
+                          {item.notes}
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t border-[#E2DDD3] flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-medium text-[#C86D51]">{item.status}</span>
+                        {item.category !== 'Birds & Wildlife' && (
+                          <button
+                            onClick={() => {
+                              setAdoptionForm((prev) => ({
+                                ...prev,
+                                animal: `${item.name} (${item.id} • ${item.territory})`
+                              }));
+                              setActivePage('adopt');
+                            }}
+                            className="text-xs font-medium underline underline-offset-4 text-[#1C2826] hover:text-[#C86D51] cursor-pointer"
+                          >
+                            Adopt / Sponsor
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activePage === 'emergency' && (
+              <div className="space-y-14">
+                <div className="border-b border-[#E2DDD3] pb-8">
+                  <div className="font-mono-field text-xs uppercase tracking-widest text-[#C86D51] mb-2">
+                    STANDARD OPERATING PROCEDURES (FAQS #1–#5, #16, #17)
+                  </div>
+                  <h2 className="font-serif-editorial text-4xl font-normal">
+                    Emergency Protocols & Roorkee Veterinary Directory
+                  </h2>
+                  <p className="text-sm text-[#5C6663] mt-1 max-w-2xl">
+                    Clear, step-by-step instructions for campus residents encountering an injured animal, dog bite, snake sighting, or sanitation emergency.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                  <div className="lg:col-span-7 space-y-6">
+                    <div className="flex flex-wrap gap-2 border-b border-[#E2DDD3] pb-4">
+                      {[
+                        { id: 'injured', label: '01. Ill / Injured Animal' },
+                        { id: 'bite', label: '02. Stray Animal Bite' },
+                        { id: 'snake', label: '03. Snake Sighting / Bite' },
+                        { id: 'deceased', label: '04. Deceased Animal' }
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveSopTab(tab.id)}
+                          className={`px-4 py-2 rounded text-xs font-medium transition cursor-pointer ${
+                            activeSopTab === tab.id
+                              ? 'bg-[#1C2826] text-[#FAF7F2]'
+                              : 'bg-[#F3EFE6] text-[#4A5552] hover:bg-[#EAE4D7]'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {activeSopTab === 'injured' && (
+                      <div className="bg-[#F3EFE6] border border-[#E2DDD3] p-7 rounded-sm space-y-4">
+                        <div className="font-mono-field text-xs text-[#3A5A40]">
+                          SOP 01 • INJURED OR ILL ANIMAL ON CAMPUS
+                        </div>
+                        <h3 className="font-serif-editorial text-2xl font-medium">
+                          6-Step Rescue & Veterinary Transport Protocol
+                        </h3>
+                        <ol className="space-y-3 text-sm text-[#4A5552] list-decimal list-inside leading-relaxed">
+                          <li>
+                            <strong>Assess Calmly:</strong> Observe the animal from a safe distance without crowding or startling it.
+                          </li>
+                          <li>
+                            <strong>Notify CCF Immediately:</strong> Call the Emergency Helpdesk at{' '}
+                            <strong className="text-[#1C2826]">+91 9068001181</strong> and email{' '}
+                            <strong className="text-[#1C2826]">ccf@iitr.ac.in</strong> &{' '}
+                            <strong className="text-[#1C2826]">ccf-office@iitr.ac.in</strong>.
+                          </li>
+                          <li>
+                            <strong>Share Visual Location:</strong> Send a clear photograph/video and exact Bhawan or department landmark.
+                          </li>
+                          <li>
+                            <strong>Security Transport:</strong> Coordinate with Campus Security to transport the animal to Ramnagar or Beldih Veterinary Hospital (or dial <strong>1962</strong>).
+                          </li>
+                          <li>
+                            <strong>Wild Fauna Protocol:</strong> For monkeys, peafowl, birds, or reptiles, CCF coordinates directly with the Uttarakhand Forest Department.
+                          </li>
+                          <li>
+                            <strong>Follow-up Log:</strong> Retain the veterinarian’s prescription for post-operative care by CCF volunteers.
+                          </li>
+                        </ol>
+                      </div>
+                    )}
+
+                    {activeSopTab === 'bite' && (
+                      <div className="bg-[#F3EFE6] border border-[#E2DDD3] p-7 rounded-sm space-y-4">
+                        <div className="font-mono-field text-xs text-[#C86D51]">
+                          SOP 02 • STRAY ANIMAL BITE INCIDENT
+                        </div>
+                        <h3 className="font-serif-editorial text-2xl font-medium">
+                          5-Step Medical First-Aid & Observation Protocol
+                        </h3>
+                        <ol className="space-y-3 text-sm text-[#4A5552] list-decimal list-inside leading-relaxed">
+                          <li>
+                            <strong>Immediate Safety:</strong> Seek assistance from nearby Campus Security personnel to move safely away from the spot.
+                          </li>
+                          <li>
+                            <strong>15-Minute Wound Wash:</strong> Wash the bite or scratch thoroughly under running tap water with soap or antiseptic for 15 minutes.
+                          </li>
+                          <li>
+                            <strong>IITR Institute Hospital:</strong> Proceed immediately to the IIT Roorkee Institute Hospital for Anti-Rabies Vaccination (ARV) and Tetanus care.
+                          </li>
+                          <li>
+                            <strong>Report to CCF:</strong> Email the location and dog’s collar/coat description to <strong>ccf@iitr.ac.in</strong>.
+                          </li>
+                          <li>
+                            <strong>10-Day Quarantine Observation:</strong> CCF and Security will safely identify and observe the dog for 10 days. Do not beat or retaliate against the animal.
+                          </li>
+                        </ol>
+                      </div>
+                    )}
+
+                    {activeSopTab === 'snake' && (
+                      <div className="bg-[#F3EFE6] border border-[#E2DDD3] p-7 rounded-sm space-y-5">
+                        <div className="font-mono-field text-xs text-[#3A5A40]">
+                          SOP 03 • SNAKE SIGHTING & SNAKEBITE FIRST-AID (FAQS #16 & #17)
+                        </div>
+                        <h3 className="font-serif-editorial text-2xl font-medium">
+                          Safe Rescue & Anti-Snake Venom (ASV) Protocol
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                          <div className="p-4 bg-[#FAF7F2] border border-[#E2DDD3] space-y-2">
+                            <div className="font-semibold text-[#1C2826]">If You Spot a Snake:</div>
+                            <p className="text-xs text-[#4A5552] leading-relaxed">
+                              • Keep at least 10–15 feet away. Never attempt to catch or kill it (Protected under WPA 1972).<br />
+                              • Take a zoomed photograph from a safe distance for species identification.<br />
+                              • Call Campus Security and CCF Helpdesk (<strong>9068001181</strong>) immediately.
+                            </p>
+                          </div>
+                          <div className="p-4 bg-[#FAF7F2] border border-[#E2DDD3] space-y-2">
+                            <div className="font-semibold text-[#C86D51]">In Case of Snakebite:</div>
+                            <p className="text-xs text-[#4A5552] leading-relaxed">
+                              • Keep the victim completely calm and still; immobilize the bitten limb below heart level.<br />
+                              • <strong>Do NOT</strong> tie tight tourniquets, cut the wound, or apply ice.<br />
+                              • Rush directly to <strong>IITR Institute Hospital</strong> (stocked with Anti-Snake Venom).
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeSopTab === 'deceased' && (
+                      <div className="bg-[#F3EFE6] border border-[#E2DDD3] p-7 rounded-sm space-y-4">
+                        <div className="font-mono-field text-xs text-[#5C6663]">
+                          SOP 04 • DECEASED ANIMAL ON CAMPUS (FAQ #3)
+                        </div>
+                        <h3 className="font-serif-editorial text-2xl font-medium">
+                          4-Step Sanitation & Hygienic Burial Protocol
+                        </h3>
+                        <ol className="space-y-3 text-sm text-[#4A5552] list-decimal list-inside leading-relaxed">
+                          <li>Note the exact campus road, department, or hostel landmark.</li>
+                          <li>Notify the CCF Helpdesk (<strong>+91 9068001181</strong>) and Campus Sanitation Helpdesk.</li>
+                          <li>The Sanitation team will respectfully retrieve the carcass.</li>
+                          <li>Ensure deep burial with salt at designated sanitation grounds to maintain campus hygiene.</li>
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="lg:col-span-5 space-y-4">
+                    <div className="bg-[#F3EFE6] border border-[#E2DDD3] p-7 rounded-sm space-y-5">
+                      <div className="border-b border-[#E2DDD3] pb-3">
+                        <div className="font-mono-field text-xs uppercase text-[#C86D51]">
+                          OFFICIAL DIRECTORY • FAQ #5
+                        </div>
+                        <h3 className="font-serif-editorial text-2xl font-medium mt-1">
+                          Emergency & Veterinary Contacts
+                        </h3>
+                      </div>
+
+                      <div className="divide-y divide-[#E2DDD3] text-sm">
+                        {[
+                          {
+                            role: 'CCF Campus Emergency Helpdesk',
+                            officer: '24/7 IIT Roorkee Response Line',
+                            phone: '+91 9068001181'
+                          },
+                          {
+                            role: 'Government Veterinary Ambulance',
+                            officer: 'Toll-Free Mobile Veterinary Unit',
+                            phone: '1962'
+                          },
+                          {
+                            role: 'Veterinary Hospital, Ramnagar (Roorkee)',
+                            officer: 'Dr. Rohit (Veterinary Officer)',
+                            phone: '+91 9917339331'
+                          },
+                          {
+                            role: 'Veterinary Hospital, Beldih (Roorkee)',
+                            officer: 'Dr. Nishant Sharma (Veterinary Officer)',
+                            phone: '+91 9411302358'
+                          }
+                        ].map((item, i) => (
+                          <div key={i} className="py-3.5 flex items-center justify-between gap-4">
+                            <div>
+                              <div className="font-medium text-[#1C2826]">{item.role}</div>
+                              <div className="text-xs text-[#5C6663]">{item.officer}</div>
+                            </div>
+                            <a
+                              href={`tel:${item.phone.replace(/\s+/g, '')}`}
+                              className="font-mono-field text-xs px-3 py-1.5 rounded bg-[#FAF7F2] border border-[#D5CFC2] text-[#1C2826] hover:border-[#C86D51] shrink-0"
+                            >
+                              {item.phone}
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pt-3 border-t border-[#E2DDD3] text-xs text-[#5C6663] space-y-1">
+                        <div>
+                          <strong>Official Correspondence:</strong> ccf@iitr.ac.in • ccf-office@iitr.ac.in
+                        </div>
+                        <div>
+                          <strong>Human Medical Emergencies:</strong> IIT Roorkee Institute Hospital (24/7 ARV & ASV)
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activePage === 'map' && (
+              <div className="space-y-10">
+                <div className="border-b border-[#E2DDD3] pb-8">
+                  <div className="font-mono-field text-xs uppercase tracking-widest text-[#3A5A40] mb-2">
+                    RULE 19 • ANIMAL BIRTH CONTROL (ABC) RULES 2023
+                  </div>
+                  <h2 className="font-serif-editorial text-4xl font-normal">
+                    Designated Campus Feeding Sectors & Avian Hotspots
+                  </h2>
+                  <p className="text-sm text-[#5C6663] mt-1 max-w-2xl">
+                    Select any sector marker on the architectural diagram below to inspect designated low-traffic feeding locations, approved timings, and water trough placements.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  <div className="lg:col-span-7 relative h-[440px] bg-[#F3EFE6] border border-[#D5CFC2] rounded-sm overflow-hidden p-6">
+                    <div
+                      className="absolute inset-0 opacity-35 pointer-events-none"
+                      style={{
+                        backgroundImage:
+                          'linear-gradient(to right, #E2DDD3 1px, transparent 1px), linear-gradient(to bottom, #E2DDD3 1px, transparent 1px)',
+                        backgroundSize: '36px 36px'
+                      }}
+                    />
+
+                    <div className="absolute top-0 left-8 bottom-0 w-9 bg-[#D8E2DC] border-x border-[#B8C7BE] flex items-center justify-center">
+                      <span className="-rotate-90 whitespace-nowrap font-mono-field text-[10px] tracking-widest uppercase text-[#3A5A40]">
+                        UPPER GANGA CANAL • AVIAN CORRIDOR
+                      </span>
+                    </div>
+
+                    <div className="relative z-10 pl-12 flex items-center justify-between text-xs font-mono-field text-[#5C6663]">
+                      <span>IIT ROORKEE SECTOR DIAGRAM</span>
+                      <span>36 TERRACOTTA WATER TROUGHS</span>
+                    </div>
+
+                    {CAMPUS_SECTORS.map((sec) => {
+                      const active = selectedSector.id === sec.id;
+                      return (
+                        <button
+                          key={sec.id}
+                          onClick={() => setSelectedSector(sec)}
+                          style={{ left: `${sec.coords.x}%`, top: `${sec.coords.y}%` }}
+                          className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 transition cursor-pointer ${
+                            active ? 'scale-105 z-30' : 'hover:scale-105'
+                          }`}
+                        >
+                          <div
+                            className={`px-3 py-1.5 rounded-sm text-xs font-mono-field border shadow-sm flex items-center gap-1.5 ${
+                              active
+                                ? 'bg-[#1C2826] text-[#FAF7F2] border-[#1C2826]'
+                                : 'bg-[#FAF7F2] text-[#1C2826] border-[#1C2826]/40 hover:border-[#C86D51]'
+                            }`}
+                          >
+                            <span className="w-2 h-2 rounded-full bg-[#C86D51]" />
+                            <span>{sec.id}</span>
+                            <span className="opacity-75">({sec.dogsCount})</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="lg:col-span-5 bg-[#F3EFE6] border border-[#E2DDD3] p-7 rounded-sm flex flex-col justify-between space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-[#E2DDD3] pb-3 font-mono-field text-xs text-[#5C6663]">
+                        <span>{selectedSector.id}</span>
+                        <span>{selectedSector.waterTroughs} WATER TROUGHS</span>
+                      </div>
+                      <h3 className="font-serif-editorial text-2xl font-medium">
+                        {selectedSector.name}
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4 py-2 border-y border-[#E2DDD3]">
+                        <div>
+                          <div className="font-serif-editorial text-2xl text-[#1C2826]">
+                            {selectedSector.dogsCount} Dogs
+                          </div>
+                          <div className="text-xs text-[#5C6663]">Sterilized & Collared</div>
+                        </div>
+                        <div>
+                          <div className="font-mono-field text-xs font-medium text-[#C86D51] pt-1">
+                            {selectedSector.schedule}
+                          </div>
+                          <div className="text-xs text-[#5C6663] mt-0.5">Designated Feeding Hours</div>
+                        </div>
+                      </div>
+                      <div className="space-y-3 text-xs text-[#4A5552] leading-relaxed">
+                        <div>
+                          <strong className="text-[#1C2826] block">Approved Feeding Buffer Spot:</strong>
+                          {selectedSector.feedingSpot}
+                        </div>
+                        <div>
+                          <strong className="text-[#1C2826] block">Assigned Sector Stewards:</strong>
+                          {selectedSector.stewards}
+                        </div>
+                        <div>
+                          <strong className="text-[#1C2826] block">Documented Bird Species in Sector:</strong>
+                          {selectedSector.avianNotes}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-[#E2DDD3] text-xs text-[#5C6663] leading-relaxed">
+                      <strong className="text-[#1C2826]">Feeding Etiquette (FAQs #6 & #7):</strong> Feed strictly away from hostel staircases and pedestrian walkways. Clear all bowls or biodegradable sheets immediately after the meal.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activePage === 'adopt' && (
+              <div className="space-y-16">
+                <section className="border-b border-[#E2DDD3] pb-12 space-y-6">
+                  <div className="max-w-2xl">
+                    <div className="font-mono-field text-xs uppercase tracking-widest text-[#C86D51] mb-2">
+                      ADOPT, DON’T BUY • OFFICIAL CCF ADOPTION PORTAL
+                    </div>
+                    <h2 className="font-serif-editorial text-4xl font-normal">
+                      Why Adopt an Indian Native (Indie) Dog?
+                    </h2>
+                    <p className="text-sm text-[#4A5552] mt-2 leading-relaxed">
+                      Naturally adapted over thousands of years to the Indian climate, native dogs possess robust immunity, gentle temperaments, and remarkable loyalty—free from the congenital ailments common in commercial purebreds.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-4">
+                    <div className="lg:col-span-7 bg-[#F3EFE6] border border-[#E2DDD3] p-7 rounded-sm space-y-5">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2DDD3] pb-4">
+                        <h3 className="font-serif-editorial text-2xl font-medium">
+                          Adoption Application Form
+                        </h3>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => notify('Downloaded Official CCF Adoption Form (.PDF)')}
+                            className="px-3 py-1.5 rounded bg-[#FAF7F2] border border-[#D5CFC2] text-xs font-mono-field hover:border-[#1C2826] inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5" /> .PDF Form
+                          </button>
+                          <button
+                            onClick={() => notify('Downloaded Official CCF Adoption Form (.DOC)')}
+                            className="px-3 py-1.5 rounded bg-[#FAF7F2] border border-[#D5CFC2] text-xs font-mono-field hover:border-[#1C2826] inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <FileText className="w-3.5 h-3.5" /> .DOC Form
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 bg-[#FAF7F2] border border-[#E2DDD3] text-xs text-[#4A5552] space-y-1">
+                        <div className="font-semibold text-[#1C2826]">
+                          Statutory Eligibility Criteria:
+                        </div>
+                        <div>• Puppies must be over <strong>60 days old</strong> prior to separation from their mother.</div>
+                        <div>• Adult dogs must be <strong>sterilized and vaccinated</strong> prior to adoption.</div>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          notify(`Application recorded for ${adoptionForm.animal}. Team CCF will reach out via email.`);
+                        }}
+                        className="space-y-4 text-xs"
+                      >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block font-medium text-[#1C2826] mb-1">Full Name *</label>
+                            <input
+                              type="text"
+                              required
+                              value={adoptionForm.name}
+                              onChange={(e) => setAdoptionForm({ ...adoptionForm, name: e.target.value })}
+                              placeholder="Prof. / Dr. / Resident Name"
+                              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#D5CFC2] rounded outline-none focus:border-[#1C2826]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-medium text-[#1C2826] mb-1">Affiliation *</label>
+                            <select
+                              value={adoptionForm.affiliation}
+                              onChange={(e) => setAdoptionForm({ ...adoptionForm, affiliation: e.target.value })}
+                              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#D5CFC2] rounded outline-none focus:border-[#1C2826]"
+                            >
+                              <option>Faculty / Staff Resident (IITR)</option>
+                              <option>Student (For Hometown Family Residence)</option>
+                              <option>Alumni / Roorkee Citizen</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block font-medium text-[#1C2826] mb-1">Email Address *</label>
+                            <input
+                              type="email"
+                              required
+                              value={adoptionForm.email}
+                              onChange={(e) => setAdoptionForm({ ...adoptionForm, email: e.target.value })}
+                              placeholder="name@iitr.ac.in"
+                              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#D5CFC2] rounded outline-none focus:border-[#1C2826]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-medium text-[#1C2826] mb-1">Contact Number *</label>
+                            <input
+                              type="tel"
+                              required
+                              value={adoptionForm.phone}
+                              onChange={(e) => setAdoptionForm({ ...adoptionForm, phone: e.target.value })}
+                              placeholder="+91 98765 43210"
+                              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#D5CFC2] rounded outline-none focus:border-[#1C2826]"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block font-medium text-[#1C2826] mb-1">
+                            Animal Selected for Adoption *
+                          </label>
+                          <input
+                            type="text"
+                            value={adoptionForm.animal}
+                            onChange={(e) => setAdoptionForm({ ...adoptionForm, animal: e.target.value })}
+                            className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#D5CFC2] rounded outline-none focus:border-[#1C2826]"
+                          />
+                        </div>
+
+                        <label className="flex items-start gap-2.5 cursor-pointer pt-1">
+                          <input
+                            type="checkbox"
+                            required
+                            checked={adoptionForm.consent}
+                            onChange={(e) => setAdoptionForm({ ...adoptionForm, consent: e.target.checked })}
+                            className="mt-0.5 accent-[#3A5A40]"
+                          />
+                          <span className="text-[#4A5552] leading-relaxed">
+                            I acknowledge the 12–15 year commitment of pet guardianship and pledge routine vaccination, humane care, and zero abandonment under the PCA Act, 1960.
+                          </span>
+                        </label>
+
+                        <button
+                          type="submit"
+                          className="px-6 py-3 rounded bg-[#1C2826] text-[#FAF7F2] font-medium text-xs hover:bg-[#2c3e3b] transition cursor-pointer"
+                        >
+                          Submit Adoption Application
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="lg:col-span-5 bg-[#F3EFE6] border border-[#E2DDD3] p-7 rounded-sm flex flex-col justify-between space-y-6">
+                      <div className="space-y-4">
+                        <div className="font-mono-field text-xs uppercase text-[#3A5A40]">
+                          BECOME A SPONSOR • SAVE A LIFE
+                        </div>
+                        <h3 className="font-serif-editorial text-2xl font-medium">
+                          Sponsor Meals, Collars & Medical Care
+                        </h3>
+                        <p className="text-xs text-[#4A5552] leading-relaxed">
+                          Contributions from faculty, alumni, and students directly fund daily nourishment, reflective territory collars, 9-in-1 boosters, and post-operative veterinary care.
+                        </p>
+
+                        <div className="space-y-2 pt-2">
+                          {[
+                            { amt: 250, desc: '₹250 — One week of wholesome meals for a sector dog' },
+                            { amt: 500, desc: '₹500 — Reflective collar + deworming & anti-tick dose' },
+                            { amt: 1500, desc: '₹1,500 — Complete annual vaccination & booster drive' },
+                            { amt: 3000, desc: '₹3,000 — Emergency veterinary surgery & recovery care' }
+                          ].map((tier) => (
+                            <button
+                              key={tier.amt}
+                              onClick={() => setSponsorshipTier(tier.amt)}
+                              className={`w-full p-3 rounded text-left text-xs border transition cursor-pointer ${
+                                sponsorshipTier === tier.amt
+                                  ? 'bg-[#1C2826] text-[#FAF7F2] border-[#1C2826]'
+                                  : 'bg-[#FAF7F2] text-[#1C2826] border-[#D5CFC2] hover:border-[#1C2826]'
+                              }`}
+                            >
+                              {tier.desc}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          offerBiscuit();
+                          notify(`Thank you for pledging ₹${sponsorshipTier} to CCF IIT Roorkee. Sponsorship instructions sent.`);
+                        }}
+                        className="w-full py-3 rounded bg-[#C86D51] text-[#FAF7F2] font-medium text-xs hover:bg-[#b55d42] transition cursor-pointer"
+                      >
+                        Pledge ₹{sponsorshipTier} Sponsorship
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div>
+                    <div className="font-mono-field text-xs uppercase tracking-widest text-[#3A5A40] mb-2">
+                      STUDENT RECRUITMENT • JOIN TEAM CCF
+                    </div>
+                    <h3 className="font-serif-editorial text-3xl font-normal">
+                      Technical & Field Internship Openings
+                    </h3>
+                    <p className="text-sm text-[#5C6663] mt-1">
+                      CCF invites IIT Roorkee students to contribute as volunteers or interns across our four technical wings.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {[
+                      {
+                        role: 'UX/UI Designer',
+                        focus: 'Design systems, botanical field guides, and mobile rescue workflows.'
+                      },
+                      {
+                        role: 'Frontend Developer',
+                        focus: 'Web & mobile interfaces for the Fauna Directory and feeding schedules.'
+                      },
+                      {
+                        role: 'Backend Developer',
+                        focus: 'Database architecture for vaccination logs, sterilization records & SOS alerts.'
+                      },
+                      {
+                        role: 'Android / iOS Developer',
+                        focus: 'Cross-platform mobile application for one-tap geotagged animal rescue.'
+                      }
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="p-5 bg-[#F3EFE6] border border-[#E2DDD3] rounded-sm flex flex-col justify-between space-y-4"
+                      >
+                        <div>
+                          <div className="font-mono-field text-[11px] text-[#5C6663]">
+                            ROLE 0{idx + 1}
+                          </div>
+                          <h4 className="font-serif-editorial text-xl font-medium mt-1">
+                            {item.role}
+                          </h4>
+                          <p className="text-xs text-[#4A5552] mt-2 leading-relaxed">{item.focus}</p>
+                        </div>
+                        <button
+                          onClick={() =>
+                            notify(`To apply for ${item.role}, email your resume/GitHub to ccf@iitr.ac.in.`)
+                          }
+                          className="text-xs font-mono-field uppercase text-[#3A5A40] hover:underline text-left pt-2 border-t border-[#E2DDD3] cursor-pointer"
+                        >
+                          Apply via ccf@iitr.ac.in →
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {activePage === 'laws' && (
+              <div className="space-y-16">
+                <section className="space-y-8 pb-14 border-b border-[#E2DDD3]">
+                  <div>
+                    <div className="font-mono-field text-xs uppercase tracking-widest text-[#3A5A40] mb-2">
+                      STATUTORY FRAMEWORK (/ACTS-LAWS/)
+                    </div>
+                    <h2 className="font-serif-editorial text-4xl font-normal">
+                      Indian Animal Protection Acts & Constitutional Mandates
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {LEGAL_STATUTES.map((law, i) => (
+                      <div
+                        key={i}
+                        className="p-6 bg-[#F3EFE6] border border-[#E2DDD3] rounded-sm flex flex-col justify-between space-y-4"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between font-mono-field text-xs text-[#5C6663]">
+                            <span className="text-[#C86D51] font-medium">{law.code}</span>
+                            <span>{law.clause}</span>
+                          </div>
+                          <h3 className="font-serif-editorial text-xl font-medium">{law.title}</h3>
+                          <p className="text-xs text-[#4A5552] leading-relaxed">{law.summary}</p>
+                          <div className="p-3 bg-[#FAF7F2] border border-[#E2DDD3] text-xs text-[#1C2826]">
+                            <strong>Campus Mandate:</strong> {law.mandate}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => notify(`Downloaded ${law.code} Official Extract (.PDF)`)}
+                          className="text-xs font-mono-field text-[#3A5A40] hover:underline inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Download className="w-3.5 h-3.5" /> Download Statutory Extract (PDF)
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="space-y-8">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                      <div className="font-mono-field text-xs uppercase tracking-widest text-[#C86D51] mb-2">
+                        COMPLETE 19-POINT HANDBOOK
+                      </div>
+                      <h3 className="font-serif-editorial text-3xl font-normal">
+                        Frequently Asked Questions (FAQs 01 – 19)
+                      </h3>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="relative">
+                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5C6663]" />
+                        <input
+                          type="text"
+                          placeholder="Filter 19 FAQs..."
+                          value={faqSearch}
+                          onChange={(e) => setFaqSearch(e.target.value)}
+                          className="pl-9 pr-4 py-2 bg-[#F3EFE6] border border-[#D5CFC2] rounded text-xs outline-none focus:border-[#1C2826]"
+                        />
+                      </div>
+                      {[
+                        'All',
+                        'Emergency & Medical',
+                        'Human Safety & Bites',
+                        'Campus Dogs & Feeding',
+                        'Campus Rules & Pets',
+                        'Laws & Coexistence'
+                      ].map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setFaqCategory(cat)}
+                          className={`px-3 py-1.5 rounded text-xs transition cursor-pointer ${
+                            faqCategory === cat
+                              ? 'bg-[#1C2826] text-[#FAF7F2]'
+                              : 'bg-[#F3EFE6] text-[#4A5552] hover:bg-[#EAE4D7]'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="divide-y divide-[#E2DDD3] border-y border-[#E2DDD3]">
+                    {filteredFaqs.map((faq) => {
+                      const open = openFaqId === faq.id;
+                      return (
+                        <div key={faq.id} className="py-4">
+                          <button
+                            onClick={() => setOpenFaqId(open ? null : faq.id)}
+                            className="w-full text-left flex items-baseline justify-between gap-4 group cursor-pointer"
+                          >
+                            <div className="flex items-baseline gap-4">
+                              <span className="font-mono-field text-xs text-[#C86D51] shrink-0">
+                                {String(faq.id).padStart(2, '0')}
+                              </span>
+                              <span className="font-serif-editorial text-lg sm:text-xl font-medium text-[#1C2826] group-hover:text-[#C86D51] transition">
+                                {faq.q}
+                              </span>
+                            </div>
+                            <span className="font-mono-field text-xs text-[#5C6663] shrink-0">
+                              {open ? '—' : '+'}
+                            </span>
+                          </button>
+
+                          {open && (
+                            <div className="pl-8 sm:pl-9 pr-4 pt-3 text-sm text-[#4A5552] leading-relaxed whitespace-pre-line max-w-3xl">
+                              {faq.a}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              </div>
+            )}
+          </main>
+
+          {/* Modals */}
+          {wiiModalOpen && (
+            <div className="fixed inset-0 z-50 bg-[#1C2826]/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="max-w-lg w-full bg-[#FAF7F2] border border-[#D5CFC2] p-8 rounded-sm shadow-2xl space-y-5">
+                <div className="flex items-center justify-between border-b border-[#E2DDD3] pb-3">
+                  <span className="font-mono-field text-xs uppercase text-[#3A5A40]">
+                    WILDLIFE INSTITUTE OF INDIA (WII)
+                  </span>
+                  <button onClick={() => setWiiModalOpen(false)} className="text-[#5C6663] hover:text-[#1C2826] cursor-pointer">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <h3 className="font-serif-editorial text-2xl font-medium">
+                  Biodiversity Assessment of IIT Roorkee Campus
+                </h3>
+                <p className="text-sm text-[#4A5552] leading-relaxed">
+                  Prepared by the Wildlife Institute of India, Dehradun, this survey documents the ecological richness of IIT Roorkee—recording 57 avian species, 140 tree varieties, and 91 herbaceous species across the historic campus.
+                </p>
+
+                <div className="grid grid-cols-3 gap-3 p-4 bg-[#F3EFE6] border border-[#E2DDD3] text-center">
+                  <div>
+                    <div className="font-serif-editorial text-2xl">57</div>
+                    <div className="text-[11px] text-[#5C6663]">Bird Species</div>
+                  </div>
+                  <div>
+                    <div className="font-serif-editorial text-2xl">140</div>
+                    <div className="text-[11px] text-[#5C6663]">Tree Varieties</div>
+                  </div>
+                  <div>
+                    <div className="font-serif-editorial text-2xl">91</div>
+                    <div className="text-[11px] text-[#5C6663]">Herb Species</div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setWiiModalOpen(false);
+                      notify('Downloading WII Biodiversity Assessment of IIT Roorkee (.PDF)...');
+                    }}
+                    className="flex-1 py-2.5 px-4 rounded bg-[#1C2826] text-[#FAF7F2] text-xs font-medium hover:bg-[#2c3e3b] inline-flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" /> Download Full Report (.PDF)
+                  </button>
+                  <button
+                    onClick={() => setWiiModalOpen(false)}
+                    className="px-4 py-2.5 rounded border border-[#D5CFC2] text-xs cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {sosModalOpen && (
+            <div className="fixed inset-0 z-50 bg-[#1C2826]/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="max-w-md w-full bg-[#FAF7F2] border border-[#D5CFC2] p-8 rounded-sm shadow-2xl space-y-5">
+                <div className="flex items-center justify-between border-b border-[#E2DDD3] pb-3">
+                  <span className="font-mono-field text-xs uppercase text-[#C86D51]">
+                    EMERGENCY DISPATCH • 24/7 HELPDESK
+                  </span>
+                  <button onClick={() => setSosModalOpen(false)} className="text-[#5C6663] hover:text-[#1C2826] cursor-pointer">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <h3 className="font-serif-editorial text-2xl font-medium">
+                  Report an Injured Animal or Snake Sighting
+                </h3>
+
+                <div className="grid grid-cols-2 gap-3 font-mono-field text-xs">
+                  <a
+                    href="tel:9068001181"
+                    className="p-3 rounded bg-[#C86D51] text-[#FAF7F2] text-center font-medium"
+                  >
+                    CALL: 9068001181
+                  </a>
+                  <a
+                    href="tel:1962"
+                    className="p-3 rounded bg-[#F3EFE6] border border-[#D5CFC2] text-[#1C2826] text-center font-medium"
+                  >
+                    AMBULANCE: 1962
+                  </a>
+                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    setSosModalOpen(false);
+                    notify('Emergency alert logged with CCF Helpdesk (+91 9068001181) and Campus Security.');
+                  }}
+                  className="space-y-3 text-xs pt-1"
+                >
+                  <input
+                    type="text"
+                    required
+                    placeholder="Exact Landmark (e.g., Govind Bhawan East Gate)"
+                    className="w-full px-3.5 py-2.5 bg-[#F3EFE6] border border-[#D5CFC2] rounded outline-none"
+                  />
+                  <select className="w-full px-3.5 py-2.5 bg-[#F3EFE6] border border-[#D5CFC2] rounded outline-none">
+                    <option>Injured / Ill Dog or Cat</option>
+                    <option>Snake Sighting inside Bhawan / Lawn</option>
+                    <option>Injured Bird / Peafowl / Wildlife</option>
+                    <option>Stray Animal Bite Incident</option>
+                    <option>Sanitation / Deceased Animal</option>
+                  </select>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="Your Contact Number"
+                    className="w-full px-3.5 py-2.5 bg-[#F3EFE6] border border-[#D5CFC2] rounded outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full py-3 rounded bg-[#1C2826] text-[#FAF7F2] font-medium text-xs hover:bg-[#2c3e3b] cursor-pointer"
+                  >
+                    Transmit Location to CCF & Security
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="mt-24 border-t border-[#E2DDD3] bg-[#F3EFE6] py-12 px-4 sm:px-8 text-xs text-[#5C6663]">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-[#E2DDD3]">
+              <div className="space-y-2">
+                <div className="font-serif-editorial text-lg font-medium text-[#1C2826]">
+                  Committee for Campus Fauna
+                </div>
+                <p className="leading-relaxed">
+                  Indian Institute of Technology Roorkee<br />
+                  Roorkee, Uttarakhand — 247667
+                </p>
+                <p className="font-serif-editorial italic text-sm text-[#3A5A40] pt-1">
+                  “Every Life Matters.”
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="font-mono-field text-[11px] uppercase text-[#1C2826] mb-2">
+                  Emergency & Veterinary Lines
+                </div>
+                <div>CCF Helpdesk: +91 9068001181</div>
+                <div>Vet Ambulance (Toll-Free): 1962</div>
+                <div>Dr. Rohit (Ramnagar): +91 9917339331</div>
+                <div>Dr. Nishant Sharma (Beldih): +91 9411302358</div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="font-mono-field text-[11px] uppercase text-[#1C2826] mb-2">
+                  Official Correspondence
+                </div>
+                <div>General: ccf@iitr.ac.in</div>
+                <div>Office: ccf-office@iitr.ac.in</div>
+                <div>Medical: IITR Institute Hospital (24/7 ARV/ASV)</div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="font-mono-field text-[11px] uppercase text-[#1C2826] mb-2">
+                  Statutory Compliance
+                </div>
+                <p className="leading-relaxed">
+                  Governed in accordance with the Prevention of Cruelty to Animals Act (1960), Wildlife Protection Act (1972), and Animal Birth Control Rules (2023).
+                </p>
+              </div>
+            </div>
+
+            <div className="max-w-6xl mx-auto pt-6 flex flex-wrap items-center justify-between gap-2 font-mono-field text-[11px]">
+              <span>© 2026 COMMITTEE FOR CAMPUS FAUNA, IIT ROORKEE</span>
+              <span>ARCHIVAL FIELD EDITION</span>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
